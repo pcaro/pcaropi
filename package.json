@@ -6,12 +6,32 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "module",
   "keywords": [
-    "pi",
-    "agent",
-    "skills",
-    "extensions"
+    "pi-package",
+    "pi-extension",
+    "pi-skill",
+    "pi-theme"
   ],
+  "pi": {
+    "extensions": [
+      "./pi-extensions"
+    ],
+    "skills": [
+      "./skills"
+    ],
+    "themes": [
+      "./pi-themes"
+    ],
+    "prompts": [
+      "./commands"
+    ]
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "@mariozechner/pi-ai": "*",
+    "@mariozechner/pi-tui": "*"
+  },
   "author": "",
   "license": "ISC"
 }
