@@ -1,0 +1,17 @@
+{
+  "name": "pcaropi",
+  "version": "1.0.0",
+  "description": "Skills and extensions for Pi",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "pi",
+    "agent",
+    "skills",
+    "extensions"
+  ],
+  "author": "",
+  "license": "ISC"
+}
