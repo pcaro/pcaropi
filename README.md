@@ -18,7 +18,14 @@ Custom skills located in `skills/`:
 ### Extensions
 
 Pi extensions located in `pi-extensions/`:
-  - `answer.ts`: Interactive Q&A extension. Extract questions from assistant messages and answer them one by one.
+
+- **answer** (`answer.ts`): Interactive Q&A extension. Extract questions from assistant messages and answer them one by one (`/answer` or `Ctrl+.`).
+- **context** (`context.ts`): Visualize current context usage (tokens, cost, loaded files/skills) via `/context`.
+- **files** (`files.ts`): Interactive file browser (`/files` or `Ctrl+Shift+o`) with git status, quick look (`Ctrl+Shift+r`), and finder reveal (`Ctrl+Shift+f`).
+- **notify** (`notify.ts`): Sends desktop notifications (Linux/`notify-send`) when the agent completes a turn.
+- **session-breakdown** (`session-breakdown.ts`): Visualize session history (tokens/cost/messages) over 7/30/90 days via `/session-breakdown`.
+- **todos** (`todos.ts`): Full-featured Markdown-based TODO manager (`/todos`). Supports listing, creating, claiming, and updating tasks with file locking and TUI.
+- **uv** (`uv.ts`): Intercepts Python commands (`pip`, `poetry`) to suggest or redirect to `uv` equivalents for faster package management.
 
 ### Themes
 
@@ -65,6 +72,25 @@ The `answer` extension helps you systematically answer multiple questions from t
 2.  Pi will extract the questions and present an interactive form.
 3.  Fill in your answers and submit.
 4.  The answers are sent back to the assistant as a single structured message.
+
+### TODO Manager (`todos`)
+
+The `todos` extension provides a full-featured markdown-based task manager.
+
+1.  Run `/todos` to open the interactive TUI.
+2.  Use arrow keys to navigate tasks.
+3.  Press `Enter` to see actions (work, refine, close, etc.).
+4.  Use `Ctrl+Shift+w` to quickly "work" on a task (loads it into context).
+5.  Use `Ctrl+Shift+r` to "refine" a task (starts a refinement chat).
+
+### File Browser (`files`)
+
+The `files` extension lets you browse and manage files without leaving `pi`.
+
+1.  Run `/files` or press `Ctrl+Shift+o` to open the file browser.
+2.  It shows files in the current git tree and files referenced in the session.
+3.  Filter by typing.
+4.  Actions include: Reveal in Finder, Open, Quick Look (`Ctrl+Shift+r`), Edit, Add to prompt.
 
 ## Development
 
