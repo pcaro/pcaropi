@@ -11,6 +11,7 @@ Custom skills located in `skills/`:
 - **cli-tools**: Documents CLI tools available on Pablo's system (jq, fx, gh, etc.) - reference this when selecting tools for tasks involving JSON processing, screenshots, API testing, database queries, or file operations.
 - **github**: Interact with GitHub using the `gh` CLI. Use `gh issue`, `gh pr`, `gh run`, and `gh api` for issues, PRs, CI runs, and advanced queries.
 - **google-workspace**: Access Google Workspace APIs (Drive, Docs, Calendar, Gmail, Sheets, Slides, Chat, People) via local helper scripts without MCP. Handles OAuth login and direct API calls.
+- **summarize**: Convert a URL or local file (PDF/DOCX/HTML/etc.) into Markdown using `uvx markitdown`. Optionally summarize the content using `pi` and a summarization model.
 - **update-changelog**: Read this skill before updating changelogs.
 - **web-browser**: Allows to interact with web pages by performing actions such as clicking buttons, filling out forms, and navigating links using Chrome DevTools Protocol.
 
