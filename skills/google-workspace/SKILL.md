@@ -25,9 +25,11 @@ This skill provides local Node.js helper scripts for:
 Optional (to prewarm manually):
 
 ```bash
-cd /home/pcaro/src/pcaropi/skills/google-workspace
+cd skills/google-workspace
 npm install
 ```
+
+> **Note:** All commands below assume you are in the skill directory (`skills/google-workspace`). Use `cd skills/google-workspace` before running any script.
 
 2. Auth mode defaults to **cloud** (same hosted OAuth approach used by the workspace extension), so no local `credentials.json` is required.
 
@@ -52,7 +54,6 @@ Environment overrides:
 ## Authenticate
 
 ```bash
-cd /home/pcaro/src/pcaropi/skills/google-workspace
 node scripts/auth.js login
 ```
 

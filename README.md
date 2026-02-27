@@ -8,13 +8,25 @@ This repository contains skills, extensions, and themes for the Pi coding agent.
 
 Custom skills located in `skills/`:
 
-- **cli-tools**: Documents CLI tools available on Pablo's system (jq, fx, gh, etc.) - reference this when selecting tools for tasks involving JSON processing, screenshots, API testing, database queries, or file operations.
-- **github**: Interact with GitHub using the `gh` CLI. Use `gh issue`, `gh pr`, `gh run`, and `gh api` for issues, PRs, CI runs, and advanced queries.
-- **google-workspace**: Access Google Workspace APIs (Drive, Docs, Calendar, Gmail, Sheets, Slides, Chat, People) via local helper scripts without MCP. Handles OAuth login and direct API calls.
-- **[show-me](skills/show-me/README.md)**: Record a kitty proof session demonstrating completed work. Drives a kitty window via `kitty @ send-text`, records with asciinema, and verifies output with `kitty @ get-text`. Supports split window, new tab, OS window, and quake terminal modes. Adapted from [vfk-rw/show-me](https://github.com/vfk-rw/show-me).
-- **summarize**: Convert a URL or local file (PDF/DOCX/HTML/etc.) into Markdown using `uvx markitdown`. Optionally summarize the content using `pi` and a summarization model.
-- **update-changelog**: Read this skill before updating changelogs.
-- **web-browser**: Allows to interact with web pages by performing actions such as clicking buttons, filling out forms, and navigating links using Chrome DevTools Protocol.
+| Skill | When to use | Tools | Scripts/Files |
+|-------|-------------|-------|---------------|
+| **[show-me](skills/show-me/README.md)** | Prove that code works — run demos, record terminal sessions | Bash, Read | `scripts/kitty_screenshot.sh`, `scripts/wait_for_text.sh` |
+| **summarize** | Convert URL/PDF/DOCX to Markdown, summarize content | Bash, Read | `to-markdown.mjs` |
+| **google-workspace** | Access Drive, Docs, Calendar, Gmail, Sheets without MCP | Bash | `scripts/auth.js`, `scripts/workspace.js` |
+| **github** | Interact with GitHub — PRs, issues, CI runs, API queries | Bash | `gh` CLI |
+| **web-browser** | Interact with web pages — click, fill forms, navigate | Bash | `scripts/*.js` (CDP) |
+| **cli-tools** | Reference for selecting tools — jq, fx, gh, sqlite-utils, etc. | (reference only) | — |
+| **update-changelog** | Update CHANGELOG.md before releases | (reference only) | — |
+| **brainstorming-requirement** | Refine ideas into designs through structured questioning | ask_user, write | — |
+
+#### Quick Reference
+
+- **Recording demos**: Use `show-me` to prove code works
+- **Data extraction**: Use `summarize` for docs, `cli-tools` for JSON
+- **GitHub ops**: Use `github` for PRs, issues, CI
+- **Web automation**: Use `web-browser` for browser interaction
+- **Google Workspace**: Use `google-workspace` for Drive/Docs/Calendar
+- **Requirements**: Use `brainstorming-requirement` before coding
 
 ### Extensions
 
