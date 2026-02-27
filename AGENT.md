@@ -13,7 +13,7 @@ Pi extensions live in `./pi-extensions`. When working in this repo, add or updat
 
 ## Skills
 
-Pi skills live in `./skills`.
+Pi skills live in `./skills`. All new skills must comply with the [Agent Skills specification](https://agentskills.io/specification).
 
 ## Commands
 
