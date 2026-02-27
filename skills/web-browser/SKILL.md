@@ -8,6 +8,8 @@ license: Stolen from Mario
 
 Minimal CDP tools for collaborative site exploration.
 
+> **Note:** All scripts use paths relative to the skill root (`scripts/*.js`). Run commands from the `skills/web-browser` directory.
+
 ## Start Chrome
 
 ```bash

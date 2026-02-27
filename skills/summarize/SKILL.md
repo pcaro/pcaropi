@@ -18,13 +18,13 @@ Use this skill when you need to:
 
 ### Convert a URL or file to Markdown
 
-Run from **this skill folder** (the agent should `cd` here first):
+Run the wrapper script from the skill directory:
 
 ```bash
-uvx markitdown <url-or-path>
+node to-markdown.mjs <url-or-path>
 ```
 
-To write Markdown to a temp file (prints the path) use the wrapper:
+To write Markdown to a temp file (prints the path) use:
 
 ```bash
 node to-markdown.mjs <url-or-path> --tmp

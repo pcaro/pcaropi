@@ -25,11 +25,10 @@ This skill provides local Node.js helper scripts for:
 Optional (to prewarm manually):
 
 ```bash
-cd skills/google-workspace
 npm install
 ```
 
-> **Note:** All commands below assume you are in the skill directory (`skills/google-workspace`). Use `cd skills/google-workspace` before running any script.
+> **Note:** All scripts use paths relative to the skill root (`scripts/auth.js`). Run all commands from the skill directory.
 
 2. Auth mode defaults to **cloud** (same hosted OAuth approach used by the workspace extension), so no local `credentials.json` is required.
 
