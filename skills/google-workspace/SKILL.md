@@ -30,6 +30,18 @@ npm install
 
 > **Note:** All scripts use paths relative to the skill root (`scripts/auth.js`). Run all commands from the skill directory.
 
+## Pre-flight checks
+
+```bash
+# Required
+command -v node >/dev/null 2>&1 || { echo "❌ Node.js is required but not installed"; exit 1; }
+
+# Check dependencies (auto-installed on first run)
+if [ ! -d "node_modules" ]; then
+  echo "⚠️  node_modules not found. Run 'npm install' first."
+fi
+```
+
 2. Auth mode defaults to **cloud** (same hosted OAuth approach used by the workspace extension), so no local `credentials.json` is required.
 
 Optional local OAuth mode:

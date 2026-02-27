@@ -10,6 +10,19 @@ Minimal CDP tools for collaborative site exploration.
 
 > **Note:** All scripts use paths relative to the skill root (`scripts/*.js`). Run commands from the `skills/web-browser` directory.
 
+## Pre-flight checks
+
+```bash
+# Required
+command -v google-chrome >/dev/null 2>&1 || command -v chromium >/dev/null 2>&1 || { echo "❌ Chrome/Chromium is required but not installed"; exit 1; }
+command -v node >/dev/null 2>&1 || { echo "❌ Node.js is required but not installed"; exit 1; }
+
+# Check if Chrome is running on :9222
+if ! curl -s http://localhost:9222/json >/dev/null 2>&1; then
+  echo "⚠️  Chrome not running on :9222. Run ./scripts/start.js first"
+fi
+```
+
 ## Start Chrome
 
 ```bash

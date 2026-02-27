@@ -25,6 +25,25 @@ Everything runs in a **kitty window**. Drive the demo via `kitty @ send-text`, r
 - **ansitoimg** (optional) — PNG screenshots for vision verification (`uv tool install ansitoimg`)
 - **rsvg-convert** (optional) — SVG→PNG rasterization (`apt install librsvg2-bin`)
 
+## Pre-flight checks
+
+Run this before starting a demo to ensure all required tools are available:
+
+```bash
+# Required
+command -v kitty >/dev/null 2>&1 || { echo "❌ kitty is required but not installed"; exit 1; }
+command -v asciinema >/dev/null 2>&1 || { echo "❌ asciinema is required but not installed"; exit 1; }
+
+# Optional - warn but don't fail
+command -v agg >/dev/null 2>&1 || echo "⚠️  agg not installed - GIF generation will be skipped"
+command -v ffmpeg >/dev/null 2>&1 || echo "⚠️  ffmpeg not installed - MP4 generation will be skipped"
+
+# Check kitty remote control is enabled
+if ! grep -q "allow_remote_control" ~/.config/kitty/kitty.conf 2>/dev/null; then
+  echo "⚠️  kitty remote control may not be enabled. Add 'allow_remote_control yes' to kitty.conf"
+fi
+```
+
 ## Setup
 
 Install the dependencies above, then set paths. Ask the user if not obvious from project conventions.
@@ -212,3 +231,7 @@ Fallback: if the PNG pipeline isn't available, `kitty @ get-text` (plain text) w
 8. **Be mindful of secrets.** Recordings capture everything shown in the terminal. Avoid running `env`, `printenv`, or `cat .env` during demos. The `--env` flag on asciinema limits captured environment variables, but command output can still leak secrets. When possible, run demos in a sanitized environment without sensitive credentials loaded.
 9. **Guard against command injection.** Never splice raw user text into shell commands. If the user's request contains shell metacharacters (`;`, `|`, `$()`, backticks), quote them carefully or restate the intended command and ask the user to confirm before running.
 10. **Include provenance when appropriate.** Start the demo by showing `git rev-parse --short HEAD` and `git status` so the recording is tied to a specific code state.
+
+## References
+
+- [Troubleshooting](references/troubleshooting.md) — Common issues and solutions
