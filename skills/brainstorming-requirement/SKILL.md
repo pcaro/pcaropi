@@ -17,7 +17,7 @@ Transform rough ideas into fully-formed designs through structured questioning a
 
 | Phase                       | Key Activities                        | Tool Usage                             | Output                               |
 | --------------------------- | ------------------------------------- | -------------------------------------- | ------------------------------------ |
-| **1. Understanding**        | Ask questions (one at a time)         | `ask_user` for choices                 | Purpose, constraints, criteria       |
+| **1. Understanding**        | Ask multiple questions at once        | `ask_user` or text for `/answer`       | Purpose, constraints, criteria       |
 | **2. Exploration**          | Propose 2-3 approaches                | `ask_user` for approach selection      | Architecture options with trade-offs |
 | **3. Design Presentation**  | Present in 200-300 word sections      | Open-ended questions                   | Complete design with validation      |
 | **4. Design Documentation** | Write requirement and design document | Use `write` to create REQ file         | Design doc in REQs/                  |
@@ -37,21 +37,21 @@ Brainstorming Progress:
 ### Phase 1: Understanding
 
 - Check current project state in working directory using `read`, `bash`, `ls`.
-- Ask ONE question at a time to refine the idea.
-- **Use `ask_user` tool** when you have multiple choice options.
+- You can ask multiple questions at once to gather context quickly. 
+- You can present choices as plain text lists (the user can use the `/answer` extension or `ctrl+.` to answer them interactively) or use multiple `ask_user` tool calls concurrently.
 - Gather: Purpose, constraints, success criteria.
 
-**Example using `ask_user`:**
+**Example asking multiple questions:**
 
-```json
-{
-  "question": "Where should the authentication data be stored?",
-  "options": [
-    {"label": "Session storage", "description": "clears on tab close, more secure"},
-    {"label": "Local storage", "description": "persists across sessions, more convenient"},
-    {"label": "Cookies", "description": "works with SSR, compatible with older approach"}
-  ]
-}
+```markdown
+1. Where should the authentication data be stored?
+   - Session storage
+   - Local storage
+   - Cookies
+
+2. Should we use TypeScript or JavaScript?
+   - TypeScript
+   - JavaScript
 ```
 
 ### Phase 2: Exploration
@@ -70,6 +70,21 @@ Brainstorming Progress:
     {"label": "Event-driven with message queue", "description": "scalable, complex setup, eventual consistency"},
     {"label": "Direct API calls with retry logic", "description": "simple, synchronous, easier to debug"},
     {"label": "Hybrid with background jobs", "description": "balanced, moderate complexity, best of both"}
+  ]
+}
+```
+
+**Example using `multiSelect: true`:**
+
+```json
+{
+  "question": "Which technologies should we use?",
+  "multiSelect": true,
+  "options": [
+    {"label": "React", "description": "Popular frontend library, component-based architecture"},
+    {"label": "Vue", "description": "Progressive framework, gentle learning curve"},
+    {"label": "Svelte", "description": "Compiler-based, minimal runtime overhead"},
+    {"label": "Angular", "description": "Full-featured framework, opinionated structure"}
   ]
 }
 ```
@@ -127,7 +142,7 @@ After design is validated, write it to a permanent document:
 
 | Principle                  | Application                                                           |
 | -------------------------- | --------------------------------------------------------------------- |
-| **One question at a time** | Phase 1: Single question per message, use `ask_user` for choices      |
+| **Flexible questioning**  | Phase 1: You can ask multiple independent questions at once using concurrent `ask_user` calls or plain text lists. Use `ask_user` for structured choices.      |
 | **Structured choices**     | Use `ask_user` tool for 2-4 options with trade-offs                   |
 | **YAGNI ruthlessly**       | Remove unnecessary features from all designs                          |
 | **Explore alternatives**   | Always propose 2-3 approaches before settling                         |
