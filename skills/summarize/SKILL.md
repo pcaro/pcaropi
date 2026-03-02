@@ -1,18 +1,11 @@
 ---
 name: summarize
-description: "Fetch a URL or convert a local file (PDF/DOCX/HTML/etc.) into Markdown using `uvx markitdown`, optionally it can summarize"
+description: Fetch a URL or convert binary files (PDF/DOCX/PPTX) to Markdown using markitdown. Use to read web pages, analyze binary docs, or generate short summaries before deeper work.
 ---
 
 Turn “things” (URLs, PDFs, Word docs, PowerPoints, HTML pages, text files, etc.) into **Markdown** so they can be inspected/quoted/processed like normal text.
 
 `markitdown` can fetch URLs by itself; this skill mainly wraps it to make saving + summarizing convenient.
-
-## When to use
-
-Use this skill when you need to:
-- pull down a web page as a document-like Markdown representation
-- convert binary docs (PDF/DOCX/PPTX) into Markdown for analysis
-- quickly produce a short summary of a long document before deeper work
 
 ## Quick usage
 

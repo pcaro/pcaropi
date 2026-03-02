@@ -1,6 +1,6 @@
 ---
 name: update-changelog
-description: "Read this skill before updating changelogs"
+description: Update the repository changelog with changes between the last release and the current version. Use when asked to update CHANGELOG.md.
 ---
 
 Update the repository changelog with changes between the last release and the current version (`main`) that are not yet incorporated. If `CHANGELOG.md` does not exist, use `CHANGELOG` instead.
