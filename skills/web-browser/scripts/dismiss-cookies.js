@@ -296,7 +296,7 @@ const globalTimeout = setTimeout(() => {
 
 try {
   log("connecting...");
-  const cdp = await connect(5000);
+  const cdp = await connect();
 
   log("getting pages...");
   const pages = await cdp.getPages();

@@ -5,6 +5,9 @@ import { connect } from "./cdp.js";
 const DEBUG = process.env.DEBUG === "1";
 const log = DEBUG ? (...args) => console.error("[debug]", ...args) : () => {};
 
+// Use default timeout from cdp.js (15s with retries)
+const CDP_TIMEOUT = undefined;
+
 const url = process.argv[2];
 const newTab = process.argv[3] === "--new";
 
@@ -24,7 +27,7 @@ const globalTimeout = setTimeout(() => {
 
 try {
   log("connecting...");
-  const cdp = await connect(5000);
+  const cdp = await connect();
 
   log("getting pages...");
   let targetId;

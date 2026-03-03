@@ -134,7 +134,7 @@ async function attachToTarget(cdp, targetInfo) {
 }
 
 async function main() {
-  const cdp = await connect(5000);
+  const cdp = await connect();
 
   cdp.on("Target.targetCreated", async (params) => {
     try {

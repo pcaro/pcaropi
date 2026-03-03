@@ -112,10 +112,14 @@ spawn(
 
 // Wait for Chrome to be ready by checking the debugging endpoint
 let connected = false;
-for (let i = 0; i < 30; i++) {
+let webSocketUrl = null;
+
+for (let i = 0; i < 60; i++) {
   try {
     const response = await fetch("http://localhost:9222/json/version");
     if (response.ok) {
+      const data = await response.json();
+      webSocketUrl = data.webSocketDebuggerUrl;
       connected = true;
       break;
     }
@@ -125,7 +129,36 @@ for (let i = 0; i < 30; i++) {
 }
 
 if (!connected) {
-  console.error("✗ Failed to connect to Chrome");
+  console.error("✗ Failed to connect to Chrome HTTP endpoint");
+  process.exit(1);
+}
+
+// Extra wait to ensure WebSocket is fully ready
+await new Promise((r) => setTimeout(r, 1000));
+
+// Verify WebSocket is responding
+let wsReady = false;
+for (let i = 0; i < 5; i++) {
+  try {
+    const WebSocket = (await import("ws")).default;
+    const ws = new WebSocket(webSocketUrl);
+    wsReady = await new Promise((resolve) => {
+      ws.on("open", () => {
+        ws.close();
+        resolve(true);
+      });
+      ws.on("error", () => resolve(false));
+      setTimeout(() => resolve(false), 3000);
+    });
+    if (wsReady) break;
+  } catch {
+    await new Promise((r) => setTimeout(r, 500));
+  }
+}
+
+if (!wsReady) {
+  console.error("✗ Chrome HTTP ready but WebSocket not responding");
+  console.error("  Try: pkill -9 chrome && ./scripts/start.js");
   process.exit(1);
 }
 

@@ -5,6 +5,8 @@ import { connect } from "./cdp.js";
 const DEBUG = process.env.DEBUG === "1";
 const log = DEBUG ? (...args) => console.error("[debug]", ...args) : () => {};
 
+// Use default timeout from cdp.js (15s with retries)
+
 const code = process.argv.slice(2).join(" ");
 if (!code) {
   console.log("Usage: eval.js 'code'");
@@ -22,7 +24,7 @@ const globalTimeout = setTimeout(() => {
 
 try {
   log("connecting...");
-  const cdp = await connect(5000);
+  const cdp = await connect();
 
   log("getting pages...");
   const pages = await cdp.getPages();

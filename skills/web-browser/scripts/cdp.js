@@ -4,7 +4,34 @@
 
 import WebSocket from "ws";
 
-export async function connect(timeout = 5000) {
+const DEFAULT_TIMEOUT = 15000;
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 500;
+
+export async function connect(timeout = DEFAULT_TIMEOUT) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      await new Promise((r) => setTimeout(r, RETRY_DELAY * attempt));
+    }
+
+    try {
+      const result = await attemptConnection(timeout);
+      return result;
+    } catch (e) {
+      lastError = e;
+      // Only retry on timeout/connection errors, not on validation errors
+      if (!e.message.includes("timeout") && !e.message.includes("ECONNREFUSED")) {
+        throw e;
+      }
+    }
+  }
+
+  throw lastError || new Error("Connection failed after retries");
+}
+
+async function attemptConnection(timeout) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -28,7 +55,7 @@ export async function connect(timeout = 5000) {
       });
       ws.on("error", (e) => {
         clearTimeout(connectTimeout);
-        reject(e);
+        reject(new Error(`WebSocket error: ${e.message}`));
       });
     });
   } catch (e) {
@@ -96,7 +123,7 @@ class CDP {
     }
   }
 
-  send(method, params = {}, sessionId = null, timeout = 10000) {
+  send(method, params = {}, sessionId = null, timeout = 30000) {
     return new Promise((resolve, reject) => {
       const msgId = ++this.id;
       const msg = { id: msgId, method, params };
@@ -156,7 +183,7 @@ class CDP {
     return result.result?.value;
   }
 
-  async screenshot(sessionId, timeout = 10000) {
+  async screenshot(sessionId, timeout = 30000) {
     const { data } = await this.send(
       "Page.captureScreenshot",
       { format: "png" },
