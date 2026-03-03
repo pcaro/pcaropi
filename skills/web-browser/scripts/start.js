@@ -18,9 +18,60 @@ if (process.argv[2] && process.argv[2] !== "--profile") {
   process.exit(1);
 }
 
+const isMac = process.platform === "darwin";
+const isLinux = process.platform === "linux";
+
+// Find Chrome profile directory based on platform
+function getChromeProfileDir() {
+  if (isMac) {
+    return `${process.env.HOME}/Library/Application Support/Google/Chrome`;
+  }
+  if (isLinux) {
+    // Try common Linux paths in order
+    const candidates = [
+      `${process.env.HOME}/.config/google-chrome`,
+      `${process.env.HOME}/.config/google-chrome-stable`,
+      `${process.env.HOME}/.config/google-chrome-beta`,
+      `${process.env.HOME}/.config/chromium`,
+    ];
+    for (const dir of candidates) {
+      try {
+        execSync(`test -d "${dir}"`, { stdio: "ignore" });
+        return dir;
+      } catch {}
+    }
+  }
+  return null;
+}
+
+// Find Chrome executable
+function getChromePath() {
+  if (isMac) {
+    return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+  }
+  if (isLinux) {
+    // Try common Linux paths
+    const candidates = [
+      "/usr/bin/google-chrome",
+      "/usr/bin/google-chrome-stable",
+      "/usr/bin/google-chrome-beta",
+      "/usr/bin/chromium",
+      "/usr/bin/chromium-browser",
+    ];
+    for (const path of candidates) {
+      try {
+        execSync(`test -x "${path}"`, { stdio: "ignore" });
+        return path;
+      } catch {}
+    }
+  }
+  return "/usr/bin/google-chrome";
+}
+
 // Kill existing Chrome
 try {
-  execSync("killall 'Google Chrome'", { stdio: "ignore" });
+  const killCmd = isMac ? "killall 'Google Chrome'" : "pkill -f chrome";
+  execSync(killCmd, { stdio: "ignore" });
 } catch {}
 
 // Wait a bit for processes to fully die
@@ -30,16 +81,19 @@ await new Promise((r) => setTimeout(r, 1000));
 execSync("mkdir -p ~/.cache/scraping", { stdio: "ignore" });
 
 if (useProfile) {
-  // Sync profile with rsync (much faster on subsequent runs)
-  execSync(
-    `rsync -a --delete "${process.env["HOME"]}/Library/Application Support/Google/Chrome/" ~/.cache/scraping/`,
-    { stdio: "pipe" },
-  );
+  const profileDir = getChromeProfileDir();
+  if (profileDir) {
+    // Sync profile with rsync (much faster on subsequent runs)
+    execSync(
+      `rsync -a --delete "${profileDir}/" ~/.cache/scraping/`,
+      { stdio: "pipe" },
+    );
+  } else {
+    console.error("Warning: Could not find Chrome profile directory, starting fresh");
+  }
 }
 
-const chromePath = process.platform === "darwin" 
-  ? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-  : "/usr/bin/google-chrome";
+const chromePath = getChromePath();
 
 // Start Chrome in background (detached so Node can exit)
 spawn(
