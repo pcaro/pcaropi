@@ -131,8 +131,31 @@ for (let i = 0; i < argv.length; i++) {
 
 if (!input) usageAndExit(1);
 
+function getMarkitdownExtras(path) {
+  // Map file extensions to markitdown extras
+  // See: https://github.com/microsoft/markitdown#installation
+  const ext = path.toLowerCase().split('.').pop()?.split('?')[0] || '';
+  const extrasMap = {
+    'pdf': 'pdf',
+    'pptx': 'pptx',
+    'ppt': 'pptx',
+    'docx': 'docx',
+    'doc': 'docx',
+    'xlsx': 'xlsx',
+    'xls': 'xlsx',
+    'xlsb': 'xlsx',
+  };
+  return extrasMap[ext] || null;
+}
+
 function runMarkitdown(arg) {
-  const result = spawnSync('uvx', ['markitdown', arg], {
+  const extras = getMarkitdownExtras(arg);
+  // Use uvx --from to include optional dependencies when needed
+  const args = extras
+    ? ['--from', `markitdown[${extras}]`, 'markitdown', arg]
+    : ['markitdown', arg];
+
+  const result = spawnSync('uvx', args, {
     encoding: 'utf-8',
     maxBuffer: 50 * 1024 * 1024
   });
