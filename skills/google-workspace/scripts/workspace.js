@@ -18,6 +18,7 @@ Usage:
 
 Examples:
   node scripts/workspace.js call drive files.list '{"pageSize":5,"fields":"files(id,name)"}'
+  node scripts/workspace.js call slides presentations.batchUpdate '{"presentationId":"ID","resource":{"requests":[{"createSlide":{}}]}}'
   node scripts/workspace.js call calendar events.list '{"calendarId":"primary","maxResults":10,"singleEvents":true,"orderBy":"startTime"}'
   node scripts/workspace.js drive-search "name contains 'Roadmap' and trashed=false"
   node scripts/workspace.js gmail-search "from:alice@example.com newer_than:7d"
@@ -123,7 +124,17 @@ async function cmdCall(args, options) {
     throw new Error('Usage: call <service> <method.path> [params-json]');
   }
 
-  const params = parseJsonObject(paramsRaw, 'params-json');
+  let params = parseJsonObject(paramsRaw, 'params-json');
+
+  // Fix: If requests is at top level but resource/requestBody is missing, wrap it.
+  // This helps with batchUpdate methods which are very common.
+  if (params.requests && !params.resource && !params.requestBody) {
+    const { requests, ...rest } = params;
+    if (Object.keys(rest).length > 0) {
+      params = { ...rest, resource: { requests } };
+    }
+  }
+
   const data = await callApi({
     service,
     methodPath,
@@ -271,6 +282,16 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(`❌ ${error.message}`);
+  if (error.response?.data?.error) {
+    const apiError = error.response.data.error;
+    console.error(`❌ API Error: ${apiError.message}`);
+    if (apiError.errors) {
+      apiError.errors.forEach((e) => {
+        console.error(`   - ${e.reason}: ${e.message} (${e.location || 'no location'})`);
+      });
+    }
+  } else {
+    console.error(`❌ ${error.message}`);
+  }
   process.exit(1);
 });

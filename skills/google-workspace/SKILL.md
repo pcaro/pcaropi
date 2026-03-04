@@ -91,12 +91,44 @@ node scripts/auth.js clear
 node scripts/workspace.js call <service> <method.path> '<json params>'
 ```
 
+**Note on Parameters:**
+For methods that require a request body (like `presentations.batchUpdate` or `documents.batchUpdate`), the API expects parameters inside a `resource` (or `requestBody`) property. However, `workspace.js` provides a convenience fix: if you provide a top-level `requests` array and omit `resource`, it will automatically wrap it for you.
+
 Examples:
 
 ```bash
+# Basic list
 node scripts/workspace.js call drive files.list '{"pageSize":5,"fields":"files(id,name)"}'
+
+# Complex batchUpdate (with auto-wrapping for 'requests')
+node scripts/workspace.js call slides presentations.batchUpdate '{"presentationId":"ID", "requests":[{"createSlide":{}}]}'
+
+# Traditional format (explicit resource)
 node scripts/workspace.js call calendar events.list '{"calendarId":"primary","maxResults":10,"singleEvents":true,"orderBy":"startTime"}'
+
+# Get document/presentation
 node scripts/workspace.js call docs documents.get '{"documentId":"<DOC_ID>"}'
+```
+
+### Tips for Slides/Docs editing
+
+1. **Find real text lengths and object IDs:**
+   Before editing text (using `deleteText` or `insertText`), you must know the exact lengths to avoid index out of bounds errors. Use this `jq` command to inspect a presentation:
+
+```bash
+node scripts/workspace.js call slides presentations.get '{"presentationId":"ID"}' 2>/dev/null | jq '[.slides | to_entries[] | {index: .key, slideId: .value.objectId, elements: [.value.pageElements[]? | select(.shape?.text) | {objId: .objectId, text: [.shape.text.textElements[]? | select(.textRun) | .textRun.content] | join(""), len: ([.shape.text.textElements[]? | select(.textRun) | .textRun.content] | join("") | length)}]}]'
+```
+
+2. **Text Range Type:**
+   When deleting text, always specify `type: 'FIXED_RANGE'` in `textRange`.
+
+```json
+{
+  "deleteText": {
+    "objectId": "OBJ_ID",
+    "textRange": { "type": "FIXED_RANGE", "startIndex": 0, "endIndex": 10 }
+  }
+}
 ```
 
 ### Convenience commands
@@ -115,3 +147,9 @@ node scripts/workspace.js gmail-search "from:alice@example.com newer_than:7d"
 4. Use `workspace.js call` for precise operations and return raw JSON results.
 5. For user-friendly output, post-process JSON after the call.
 6. Never print token contents back to the user.
+7. **Custom scripts:** If you create your own Node scripts that `require` modules from this skill, use absolute paths to avoid module not found errors.
+
+Example for `common.js`:
+```javascript
+const { authorize, getGoogleApis } = require('/home/pcaro/src/pcaropi/skills/google-workspace/scripts/common');
+```
