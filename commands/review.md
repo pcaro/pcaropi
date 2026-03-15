@@ -1,1 +1,0 @@
-Please dispatch two subagents to carefully review {{ARGS}}. Tell them that they're competing with another agent. Make sure they look at both architecture and implementation. Tell them that whomever finds more issues gets promoted.

@@ -242,6 +242,93 @@ Documentation: https://github.com/useshortcut/shortcut-cli
 
 ## HTTP & Web Operations
 
+### surf - Chrome Browser Automation for AI Agents
+
+**Use for**: Controlling Chrome browser programmatically for AI agents, browser automation, web scraping, taking screenshots, filling forms
+
+```bash
+surf <command> [args] [options]
+
+# Installation
+npm install -g surf-cli
+surf install <extension-id>     # Install native host (copy ID from chrome://extensions)
+
+# Basic navigation
+surf go "https://example.com"
+surf back
+surf forward
+
+# Reading pages
+surf read                           # Accessibility tree + visible text
+surf read --depth 3                 # Limit tree depth
+surf read --compact                 # Remove empty elements
+surf page.text                      # Raw text only
+
+# Element interaction
+surf click e5                       # Click by element ref
+surf click --selector ".btn"        # Click by CSS selector
+surf type "hello" --submit          # Type and press Enter
+
+# Semantic locators (no selectors needed)
+surf locate.role button --name "Submit" --action click
+surf locate.text "Sign In" --action click
+surf locate.label "Email" --action fill --value "test@example.com"
+
+# Screenshots
+surf screenshot                    # Auto-saves to /tmp
+surf screenshot --full              # Full resolution
+surf screenshot --annotate          # With element labels
+surf snap                          # Alias for screenshot
+
+# Tabs
+surf tab.list
+surf tab.new "https://example.com"
+surf tab.switch 123
+surf tab.close 123
+
+# Windows (isolate agent from your browser)
+surf window.new "https://example.com"
+surf window.list
+surf window.close 123456
+
+# Device emulation
+surf emulate.device "iPhone 14"
+surf emulate.device reset
+
+# AI queries (using your browser's logged-in session - no API keys needed)
+surf chatgpt "explain this code"
+surf gemini "explain quantum computing"
+surf perplexity "what is quantum computing"
+surf grok "latest AI trends"
+surf aistudio "explain quantum computing"
+surf aistudio.build "todo app"     # Generate full web apps
+
+# Network capture (automatic)
+surf network                        # View captured requests
+surf network --urls                 # Just URLs
+surf network.get r_001              # Full request/response
+
+# Workflows (multi-step automation)
+surf do 'go "https://example.com" | click e5 | screenshot'
+
+# Global options
+--tab-id <id>      # Target specific tab
+--window-id <id>   # Target specific window
+--json             # Output raw JSON
+--soft-fail        # Warn instead of error on restricted pages
+```
+
+**Key features**:
+- Agent-agnostic: Works with Claude Code, GPT, Gemini, Cursor, or any CLI-capable agent
+- Zero config: Install extension, run commands - no MCP servers or subscriptions
+- AI without API keys: Query ChatGPT, Gemini, Perplexity, Grok using your browser's cookies
+- Automatic network capture: All requests logged while active
+- Workflows: Multi-step automation as single commands
+
+**When to use**: Browser automation for AI agents, web scraping, automated testing, taking screenshots, form filling.
+
+Documentation: https://github.com/nicobailon/surf-cli
+
 ### httpie (http command)
 
 **Use for**: Testing API endpoints, downloading web pages, making HTTP requests

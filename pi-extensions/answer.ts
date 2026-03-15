@@ -1,3 +1,15 @@
+/**
+ * Q&A extraction hook - extracts questions from assistant responses
+ *
+ * Custom interactive TUI for answering questions.
+ *
+ * Demonstrates the "prompt generator" pattern with custom TUI:
+ * 1. /answer command gets the last assistant message
+ * 2. Shows a spinner while extracting questions as structured JSON
+ * 3. Presents an interactive TUI to navigate and answer questions
+ * 4. Submits the compiled answers when done
+ */
+
 import {
 	type Component,
 	Editor,
@@ -631,5 +643,10 @@ export default function (pi: ExtensionAPI) {
 	pi.registerShortcut("ctrl+.", {
 		description: "Extract and answer questions",
 		handler: answerHandler,
+	});
+
+	// Listen for trigger from other extensions (e.g., execute_command tool)
+	pi.events.on("trigger:answer", (ctx: ExtensionContext) => {
+		answerHandler(ctx);
 	});
 }
