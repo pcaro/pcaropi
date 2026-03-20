@@ -1,176 +1,95 @@
 ---
 name: cli-tools
-description: Documents CLI tools available on Pablo's system - reference this when selecting tools for tasks involving JSON processing, screenshots, API testing, database queries, or file operations
+description: |
+  CLI tools available: jq (JSON processing), fx (interactive JSON viewer), deep (structured data diff/patch), sqlite-utils (SQLite operations), gh (GitHub CLI), gw (git worktree manager), short (Shortcut stories), surf (browser automation), httpie (HTTP client), shot-scraper (web screenshots), flameshot (screenshots), rpl (search/replace), bq (BigQuery), snow (Snowflake), stern (Kubernetes logs)
 ---
 
-# Available CLI Tools on Pablo's System
+# CLI Tools Reference
 
-When working on Pablo's system, you have access to these specialized CLI tools. Prefer these tools when they match the task requirements.
+Quick reference for CLI tools available on Pablo's system. Use `--help` on any tool for full options.
 
-## Data Processing & Manipulation
+## Data Processing
 
-### jq - JSON Processing
-
-**Use for**: Parsing, filtering, and transforming JSON data
+### jq - JSON Processor
 
 ```bash
-# Tool for processing JSON inputs
 jq [options] <jq filter> [file...]
 
-# Example:
-echo '{"foo": 0}' | jq .
+Example:
+  echo '{"foo": 0}' | jq .
+
+Options:
+  -n, --null-input        use `null` as the single input value
+  -R, --raw-input         read each line as string instead of JSON
+  -s, --slurp             read all inputs into an array
+  -c, --compact-output    compact instead of pretty-printed output
+  -r, --raw-output        output strings without escapes and quotes
+  -S, --sort-keys         sort keys of each object on output
+  -e, --exit-status       set exit status based on output
 ```
 
-**When to use**: Any JSON parsing, filtering, or transformation tasks. Prefer this over writing Python scripts for simple JSON operations.
+Documentation: https://jqlang.github.io/jq/
 
-Documentation: https://stedolan.github.io/jq
-
-### fx - Interactive JSON Viewer & Transformer
-
-**Use for**: Interactive JSON exploration, JavaScript-based JSON transformations, streaming JSON processing
+### fx - Interactive JSON Viewer
 
 ```bash
-# Interactive mode - explore JSON with keyboard navigation
-fx data.json
-cat data.json | fx
+fx [flags] data.json
 
-# Pretty print
-echo '{"name": "world"}' | fx .
-
-# Transform with JavaScript (reference input as 'x' or 'this')
-fx data.json 'x.items.length'
-fx data.json '.items.length'  # Shorthand with dot prefix
-
-# Map over arrays - @ is shorthand for .map()
-fx example.json @.title
-fx data.json '@.name.toUpperCase()'
-
-# Filter arrays - prefix with ?
-fx example.json '?.size_bytes >= 1024'
-
-# Flatten arrays - [] operator
-fx data.json '.items[]'
-
-# Modify objects with spread operator
-echo '{"count": 1}' | fx '{...x, count: x.count + 1}'
-
-# Process streaming JSON (line-delimited or concatenated)
-cat stream.json | fx '.timestamp'
-cat stream.json | fx --slurp 'x.length'  # Collect all into array
-
-# Process non-JSON text line-by-line
-cat file.txt | fx --raw 'x.toUpperCase()'
-cat file.txt | fx --raw --slurp 'x.join("\n")'
+Flags:
+  -h, --help       print help
+  -v, --version    print version
+  -r, --raw        treat input as a raw string
+  -s, --slurp      read all inputs into an array
+  --yaml           parse input as YAML
+  --toml           parse input as TOML
+  --strict         strict mode
 ```
 
-**Built-in Functions**:
-
-Array/Collection Operations:
-- `len(x)` - Returns length of array, string, or object
-- `uniq(x)` - Remove duplicates
-- `sort(x)` - Sort array elements
-- `sortBy(fn)(x)` - Sort with custom function (curried)
-- `map(fn)(x)` - Transform elements (curried)
-- `filter(fn)(x)` - Select matching elements
-- `walk(fn)(x)` - Recursively transform nested structures
-- `groupBy(fn)(x)` - Group array items (curried)
-- `chunk(size)(x)` - Split into smaller arrays (curried)
-- `flatten(x)` - Remove array nesting
-- `reverse(x)` - Reverse array order
-
-Object Operations:
-- `keys(x)` - Extract property names
-- `values(x)` - Extract property values
-
-Data Conversion:
-- `toBase64(x)` - Encode to base64
-- `fromBase64(x)` - Decode base64
-- `YAML.stringify(x)` - Convert JSON to YAML
-- `YAML.parse(x)` - Parse YAML to JSON
-
-I/O Functions:
-- `list(x)` - Output array elements as lines
-- `save(x)` - Edit input data in place
-
-**Interactive Mode Features**:
-- Navigate: Arrow keys or Vim keys (hjkl)
-- Path adjustment: Press `.` to change paths
-- Fuzzy search: Press `@`
-- Regex search: Type `/pattern` (case-sensitive) or `/pattern/i` (case-insensitive)
-- Print to stdout: Press `P`
-- Help: Press `?` for key bindings
-
-**Configuration**:
-Create `.fxrc.js` in current directory, home directory, or XDG config directory to define custom reusable functions.
-
-**Advanced Features**:
-- Handles large numbers as BigInt (values > 2⁵³ - 1)
-- Supports non-standard values: `Infinity`, `-Infinity`, `NaN`
-- Comma operator for chaining operations on nested objects
-- Supports JSON, YAML, and TOML formats
-
-**When to use**:
-- Interactive exploration of JSON data structures (prefer over jq for visual exploration)
-- JavaScript-based transformations (when you need JS functions/methods)
-- Streaming JSON processing
-- Quick prototyping of JSON transformations with familiar JavaScript syntax
-- In-place editing of JSON files with `save()` function
-
-**When to prefer jq instead**:
-- Complex multi-stage transformations (jq's pipeline model may be clearer)
-- When you need jq-specific features (recursive descent, advanced path manipulation)
-- Shell scripts where jq is already established
-
+See `references/fx.md` for built-in functions and advanced usage.
 Documentation: https://fx.wtf
 
 ### deep - Structured Data Operations
-
-**Use for**: Diffing, extracting, grepping, or patching structured files (CSV, TSV, JSON, YAML, TOML)
 
 ```bash
 deep [OPTIONS] COMMAND [ARGS]
 
 Commands:
-  diff     - Deep diff for structured files
-  extract  - Extract data from structured files
-  grep     - Search in structured files
-  patch    - Apply patches to structured files
+  diff     Deep diff for structured files
+  extract  Extract data from structured files
+  grep     Search in structured files
+  patch    Apply patches to structured files
 ```
 
-**When to use**: When working with structured data formats beyond just JSON, especially for diffing configuration files or extracting specific fields.
-
 ### sqlite-utils - SQLite Database Operations
-
-**Use for**: Creating, querying, and manipulating SQLite databases from command line
 
 ```bash
 sqlite-utils [OPTIONS] COMMAND [ARGS]
 
-Key commands:
-  query        - Execute SQL and return JSON results
-  insert       - Insert records into tables
-  create-table - Create new tables
-  analyze      - Analyze database structure
-  enable-fts   - Enable full-text search
+Commands:
+  query         Execute SQL and return JSON results
+  insert        Insert records into tables
+  create-table  Create new tables
+  tables        List tables in database
+  analyze       Analyze database structure
+  enable-fts    Enable full-text search
 ```
 
-**When to use**: Quick database operations, converting data to/from SQLite, analyzing datasets.
-
-## GitHub & Git Operations
+## GitHub & Git
 
 ### gh - GitHub CLI
-
-**Use for**: All GitHub operations from command line
 
 ```bash
 gh <command> <subcommand> [flags]
 
 Core commands:
-  pr        - Manage pull requests
-  issue     - Manage issues
-  repo      - Manage repositories
-  auth      - Authenticate with GitHub
-  api       - Make GitHub API requests
+  auth     Authenticate gh and git with GitHub
+  browse   Open repos, issues, PRs in browser
+  gist     Manage gists
+  issue    Manage issues
+  pr       Manage pull requests
+  repo     Manage repositories
+  run      View workflow runs
+  workflow Manage workflows
 
 Examples:
   gh pr create
@@ -178,287 +97,202 @@ Examples:
   gh pr checkout 321
 ```
 
-**When to use**: Creating PRs, managing issues, checking PR status, running GitHub API queries. Prefer this over manual web browsing for GitHub operations.
-
 Documentation: https://cli.github.com/manual
 
 ### gw - Git Worktree Helper
-
-**Use for**: Managing git worktrees for parallel branch work. Need to be loaded use source ~/.gw.sh first
 
 ```bash
 gw [command] [options]
 
 Commands:
-  create <name> [directory] [--stay]  - Create worktree and cd to it
-  review <name> [--stay]              - Create worktree from existing branch
-  rm <name> [--keep-branch]           - Remove worktree (with confirmation)
-  cd [name]                           - Navigate to worktree or repo root
-  list                                - List all worktrees
-  clean                               - Remove all worktrees (with confirmation)
-
-Examples:
-  gw create feature-x              # Create and switch to worktree
-  gw create feature-x custom-dir   # Custom directory name
-  gw create feature-x --stay       # Create without switching
-  gw review feature/pr-123         # Review existing branch
-  gw cd feature-x                  # Navigate to worktree
-  gw cd                            # Navigate to repo root
-  gw rm feature-x                  # Remove worktree and branch
-  gw rm feature-x --keep-branch    # Remove worktree, keep branch
+  create <name> [dir] [--stay]     Create worktree and cd to it
+  review <name> [--stay]           Create worktree from existing branch
+  rm <name> [--keep-branch]        Remove worktree
+  cd [name]                        Navigate to worktree or repo root
+  list                             List all worktrees
+  clean                            Remove all worktrees
 ```
 
-**When to use**: Working on multiple branches simultaneously, code review workflows, isolating experimental work. Worktrees allow multiple checkouts of the same repository without the overhead of cloning.
+Load first: `source ~/.gw.sh`
 
 ## Project Management
 
 ### short - Shortcut CLI
 
-**Use for**: Viewing, creating, and updating Shortcut.com stories from command line
-
 ```bash
 short [options] [command]
 
-Core commands:
-  search|s [options] [SEARCH]     - Search stories with optional query
-  story|st [options]              - View or manipulate stories
-  create|c [options]              - Create a story
-  members|m [options]             - List members
-  workflows|wf [options]          - List workflows and their states
-  epics|e [options]               - List epics and their states
-  projects|p [options]            - List projects and their states
-  workspace|w [NAME] [options]    - List stories matching saved workspace query
-  api <path> [options]            - Make a request to the Shortcut API
+Commands:
+  search|s     Search stories
+  story|st     View or manipulate stories
+  create|c     Create a story
+  members|m    List members
+  workflows|wf List workflows
+  epics|e      List epics
+  projects|p   List projects
+  api          Make API request
 
 Examples:
-  short search "API bug"          - Search for stories
-  short story 12345               - View story details
-  short create -n "Fix bug"       - Create new story
+  short search "API bug"
+  short story 12345
 ```
 
-**When to use**: Reading story details for requirements, searching stories, creating stories from command line. Essential for converting Shortcut stories to REQ files.
+## HTTP & Web
 
-Documentation: https://github.com/useshortcut/shortcut-cli
-
-## HTTP & Web Operations
-
-### surf - Chrome Browser Automation for AI Agents
-
-**Use for**: Controlling Chrome browser programmatically for AI agents, browser automation, web scraping, taking screenshots, filling forms
+### surf - Browser Automation
 
 ```bash
 surf <command> [args] [options]
 
-# Installation
-npm install -g surf-cli
-surf install <extension-id>     # Install native host (copy ID from chrome://extensions)
+Commands:
+  go <url>          Navigate to URL
+  read              Get page accessibility tree
+  click <ref>       Click element
+  type <text>       Type text
+  screenshot        Capture screenshot
+  locate.role       Find by ARIA role
+  window.new        Create isolated browser window
 
-# Basic navigation
-surf go "https://example.com"
-surf back
-surf forward
-
-# Reading pages
-surf read                           # Accessibility tree + visible text
-surf read --depth 3                 # Limit tree depth
-surf read --compact                 # Remove empty elements
-surf page.text                      # Raw text only
-
-# Element interaction
-surf click e5                       # Click by element ref
-surf click --selector ".btn"        # Click by CSS selector
-surf type "hello" --submit          # Type and press Enter
-
-# Semantic locators (no selectors needed)
-surf locate.role button --name "Submit" --action click
-surf locate.text "Sign In" --action click
-surf locate.label "Email" --action fill --value "test@example.com"
-
-# Screenshots
-surf screenshot                    # Auto-saves to /tmp
-surf screenshot --full              # Full resolution
-surf screenshot --annotate          # With element labels
-surf snap                          # Alias for screenshot
-
-# Tabs
-surf tab.list
-surf tab.new "https://example.com"
-surf tab.switch 123
-surf tab.close 123
-
-# Windows (isolate agent from your browser)
-surf window.new "https://example.com"
-surf window.list
-surf window.close 123456
-
-# Device emulation
-surf emulate.device "iPhone 14"
-surf emulate.device reset
-
-# AI queries (using your browser's logged-in session - no API keys needed)
-surf chatgpt "explain this code"
-surf gemini "explain quantum computing"
-surf perplexity "what is quantum computing"
-surf grok "latest AI trends"
-surf aistudio "explain quantum computing"
-surf aistudio.build "todo app"     # Generate full web apps
-
-# Network capture (automatic)
-surf network                        # View captured requests
-surf network --urls                 # Just URLs
-surf network.get r_001              # Full request/response
-
-# Workflows (multi-step automation)
-surf do 'go "https://example.com" | click e5 | screenshot'
-
-# Global options
---tab-id <id>      # Target specific tab
---window-id <id>   # Target specific window
---json             # Output raw JSON
---soft-fail        # Warn instead of error on restricted pages
+Examples:
+  surf go "https://example.com"
+  surf read
+  surf click e5
 ```
 
-**Key features**:
-- Agent-agnostic: Works with Claude Code, GPT, Gemini, Cursor, or any CLI-capable agent
-- Zero config: Install extension, run commands - no MCP servers or subscriptions
-- AI without API keys: Query ChatGPT, Gemini, Perplexity, Grok using your browser's cookies
-- Automatic network capture: All requests logged while active
-- Workflows: Multi-step automation as single commands
+See `references/surf.md` for full command reference.
 
-**When to use**: Browser automation for AI agents, web scraping, automated testing, taking screenshots, form filling.
-
-Documentation: https://github.com/nicobailon/surf-cli
-
-### httpie (http command)
-
-**Use for**: Testing API endpoints, downloading web pages, making HTTP requests
+### httpie (http) - HTTP Client
 
 ```bash
 http [METHOD] URL [REQUEST_ITEM ...]
+
+Examples:
+  http example.org                    # GET
+  http example.org hello=world       # POST with JSON
+  http POST example.org name=HTTPie  # Explicit POST
+
+Request items:
+  Header:     Referer:https://httpie.io
+  Query:      search==httpie
+  Data:       name=HTTPie
+  JSON data:  amount:=42
+  File:       cv@~/CV.pdf
 ```
 
-**When to use**: API testing, downloading content, quick HTTP requests. More user-friendly than curl for interactive use.
+See `references/httpie.md` for full options.
 
-### shot-scraper - Web Screenshots & Scraping
-
-**Use for**: Taking screenshots of web pages, extracting accessibility trees, recording HAR files
+### shot-scraper - Web Screenshots
 
 ```bash
 shot-scraper [OPTIONS] COMMAND [ARGS]
 
 Commands:
-  shot          - Take screenshots
-  accessibility - Dump accessibility tree
-  har           - Record HAR file
-  html          - Output final HTML
-  javascript    - Execute JavaScript and return results
-  multi         - Take multiple screenshots from YAML config
-  pdf           - Create PDF of page
+  shot          Take screenshots
+  accessibility Dump accessibility tree
+  har           Record HAR file
+  html          Output final HTML
+  javascript    Execute JavaScript
+  pdf           Create PDF of page
 ```
-
-**When to use**: Automated screenshot capture, web scraping, testing web page rendering, capturing network traffic.
 
 ## Screen Capture
 
 ### flameshot - Screenshot Tool
 
-**Use for**: Taking screenshots on Pablo's system
-
 ```bash
-# Full screen capture
-flameshot full [options]
+flameshot [options] [arguments]
 
-Options:
-  -p, --path <path>             - Save to directory or file
-  -c, --clipboard               - Save to clipboard
-  -d, --delay <milliseconds>    - Delay before capture
-  --region <WxH+X+Y or string>  - Specific region
+Arguments:
+  gui     Start manual capture in GUI mode
+  screen  Capture a single screen
+  full    Capture entire desktop
+  config  Configure flameshot
+
+Examples:
+  flameshot full -p ~/Pictures/
+  flameshot gui
 ```
 
-**When to use**: Any time screenshots are needed. Use `flameshot full` for full screen captures.
+## Text Processing
 
-## Text Search & Replace
-
-### rpl - Search and Replace in Files
-
-**Use for**: Find and replace text across files
+### rpl - Search and Replace
 
 ```bash
 rpl [options] OLD-TEXT NEW-TEXT [FILE ...]
 
-Key options:
-  -i, --ignore-case    - Case insensitive search
-  -w, --whole-words    - Match whole words only
-  -R, --recursive      - Search recursively
-  -x GLOB, --glob GLOB - Only modify files matching glob
-  -s, --dry-run        - Simulation mode
-  -b, --backup         - Create backups (FILE~)
+Options:
+  -i, --ignore-case    Case insensitive
+  -w, --whole-words    Match whole words
+  -R, --recursive      Search recursively
+  -s, --dry-run        Simulation mode
+  -b, --backup         Create backups (FILE~)
+  -x GLOB              Only files matching glob
 ```
 
-**When to use**: Bulk text replacements across multiple files. Safer than sed for file modifications with --dry-run option.
-
-## Cloud Platform Tools
+## Cloud Platforms
 
 ### bq - BigQuery CLI
-
-**Use for**: Interacting with Google BigQuery
 
 ```bash
 bq [--global_flags] <command> [--command_flags] [args]
 
-Key command:
-  query - Execute SQL queries
+Key commands:
+  query    Execute SQL queries
 
-Examples:
-  bq query 'SELECT count(*) FROM publicdata:samples.shakespeare'
-  echo 'SELECT ...' | bq query
+Options:
+  --format   Output format (json|csv|pretty)
+  --project  Project ID
+
+Example:
+  bq query 'SELECT count(*) FROM dataset.table'
 ```
-
-**When to use**: BigQuery data analysis, running SQL queries against BigQuery datasets.
 
 ### snow - Snowflake CLI
 
-**Use for**: Snowflake database operations
+```bash
+snow [OPTIONS] COMMAND [ARGS]
 
-**When to use**: Interacting with Snowflake data warehouse.
+Commands:
+  sql          Execute Snowflake query
+  connection   Manage connections
+  object       Manage Snowflake objects
+  stage        Manage stages
+  spcs         Manage Snowpark Container Services
+```
 
-## Kubernetes Operations
+## Kubernetes
 
-### stern - Kubernetes Log Tailing
-
-**Use for**: Tailing logs from multiple pods/containers in Kubernetes
+### stern - Kubernetes Log Tailer
 
 ```bash
 stern pod-query [flags]
 
-Key flags:
-  --all-namespaces        - Tail across all namespaces
-  -n, --namespace string  - Specific namespace
-  -c, --container string  - Container name pattern
-  -l, --selector string   - Label selector
-  -s, --since duration    - Logs newer than duration (default 48h)
-  -e, --exclude strings   - Exclude log lines matching regex
-  -i, --include strings   - Include only matching log lines
-  -t, --timestamps        - Print timestamps
+Flags:
+  -A, --all-namespaces    Tail across all namespaces
+  -n, --namespace         Specific namespace
+  -c, --container         Container name pattern
+  -l, --selector          Label selector
+  -s, --since             Logs newer than duration (default 48h)
+  -t, --timestamps        Print timestamps
+  --no-follow             Exit when logs finish
 ```
 
-**When to use**: Debugging Kubernetes applications, monitoring pod logs, investigating issues across multiple containers.
+## Tool Selection Guide
 
-## General Principles
-
-1. **Prefer specialized tools**: When available, use domain-specific tools (jq/fx for JSON, gh for GitHub) rather than general-purpose tools
-2. **Check dry-run options**: Tools like `rpl` have `--dry-run` flags - use them before making bulk changes
-3. **Use pipes effectively**: Many of these tools work well in pipelines (e.g., `http api-endpoint | jq '.data'` or `cat data.json | fx @.id`)
-4. **Leverage structured output**: Tools like `gh`, `bq`, and `sqlite-utils` can output JSON for further processing with `jq` or `fx`
-
-## Tool Selection Priority
-
-When multiple tools could work:
-
-1. **Data format-specific tools first** (jq/fx for JSON, deep for structured data)
-   - Use **fx** for: Interactive exploration, JavaScript-based transformations, rapid prototyping
-   - Use **jq** for: Complex pipelines, shell scripts, jq-specific features
-2. **Platform CLIs second** (gh for GitHub, bq for BigQuery)
-3. **General-purpose tools last** (bash, python)
-
-This ensures optimal performance and cleaner command syntax.
+| Task | Preferred Tool |
+|------|---------------|
+| JSON parsing/filtering | jq |
+| JSON interactive exploration | fx |
+| Structured data diff/patch | deep |
+| SQLite operations | sqlite-utils |
+| GitHub operations | gh |
+| Multiple git branches | gw |
+| Shortcut stories | short |
+| Browser automation | surf |
+| HTTP requests | httpie |
+| Web screenshots | shot-scraper |
+| Local screenshots | flameshot |
+| Search/replace in files | rpl |
+| BigQuery queries | bq |
+| Snowflake operations | snow |
+| Kubernetes logs | stern |
