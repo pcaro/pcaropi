@@ -6,7 +6,7 @@
  * to summarize the conversation into a 3-7 word title.
  */
 
-import type { ExtensionAPI, ExtensionContext, TurnEndEvent, SessionStartEvent, SessionSwitchEvent } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext, TurnEndEvent, SessionStartEvent, SessionSwitchEvent, SessionShutdownEvent } from "@mariozechner/pi-coding-agent";
 import { complete, type UserMessage } from "@mariozechner/pi-ai";
 
 // Model for title generation (lightweight, fast, cheap)
@@ -272,6 +272,13 @@ function handleSessionSwitch(_event: SessionSwitchEvent, ctx: ExtensionContext):
 }
 
 /**
+ * Clean up state when a session shuts down to prevent memory leak.
+ */
+function handleSessionShutdown(event: SessionShutdownEvent): void {
+	sessionStates.delete(event.sessionId);
+}
+
+/**
  * Handle turn end event to trigger auto-naming.
  * Only generates a name if:
  * - The turn completed successfully (stopReason === "stop")
@@ -308,6 +315,7 @@ export function setupSessionNameHook(pi: ExtensionAPI): void {
 	// Reset state on session lifecycle events
 	pi.on("session_start", handleSessionStart);
 	pi.on("session_switch", handleSessionSwitch);
+	pi.on("session_shutdown", handleSessionShutdown);
 
 	// Generate name after first successful assistant turn
 	pi.on("turn_end", (event, ctx) => handleTurnEnd(event, ctx, pi));
