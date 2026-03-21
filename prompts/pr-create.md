@@ -1,5 +1,8 @@
 ---
 description: Create a pull request for the current branch with proper description and validation
+model: opencode-go/minimax-m2.7
+thinking: medium
+subagent: true
 ---
 
 ## Your Task

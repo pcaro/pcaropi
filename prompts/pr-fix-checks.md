@@ -1,5 +1,8 @@
 ---
 description: Monitor and fix failing GitHub CI checks for current branch PR, waiting actively for running checks and fixing all failures in minimal commits
+model: opencode-go/minimax-m2.7
+thinking: medium
+subagent: true
 ---
 
 ## Your Task
