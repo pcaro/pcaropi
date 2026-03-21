@@ -9,11 +9,15 @@
     "git:github.com/pasky/chrome-cdp-skill@v1.0.1",
     "git:github.com/nicobailon/pi-mcp-adapter",
     "npm:@aliou/pi-processes",
-    "npm:pi-prompt-template-model"
+    "npm:pi-prompt-template-model",
+    "https://github.com/affsantos/pi-screenshots"
   ],
   "lastChangelogVersion": "0.61.1",
   "defaultProvider": "opencode-go",
   "defaultModel": "minimax-m2.7",
   "defaultThinkingLevel": "medium",
-  "hideThinkingBlock": false
+  "hideThinkingBlock": false,
+  "pi-screenshots": {
+    "dir": "~/Pictures/Capturas de pantalla/"
+  }
 }
