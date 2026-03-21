@@ -32,6 +32,6 @@
     "@mariozechner/pi-ai": "*",
     "@mariozechner/pi-tui": "*"
   },
-  "author": "",
+  "author": "Pablo Caro",
   "license": "ISC"
 }

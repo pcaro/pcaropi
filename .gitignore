@@ -1,2 +1,24 @@
-node_modules/
+# Sensitive - don't sync
+auth.json
+
+# Local state - don't sync
+.pi/
+sessions/
+bin/
+
+# Pi runtime files (created when this repo is ~/.pi/agent/)
+git/
+mcp-cache.json
+mcp-npx-cache.json
+run-history.jsonl
+session-manager-config.toml
+
+# Extension dependencies (install locally)
+pi-extensions/*/node_modules/
+pi-extensions/node_modules/
+
+# OS files
 .DS_Store
+Thumbs.db
+
+

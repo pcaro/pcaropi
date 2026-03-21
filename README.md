@@ -1,10 +1,37 @@
-# pcaropi
+# Pi Config
 
-This repository contains skills, extensions, and themes for the Pi coding agent.
+My personal pi configuration — agents, skills, extensions, and prompts that shape how pi works for me.
 
-## Features
+## Setup
 
-### Skills
+Clone this repo directly to `~/.pi/agent/` — pi auto-discovers everything from there (extensions, skills, agents, AGENTS.md, mcp.json). No symlinks, no manual wiring.
+
+### Fresh machine
+
+```bash
+# 1. Install pi (https://github.com/badlogic/pi)
+
+# 2. Clone this repo as your agent config
+mkdir -p ~/.pi
+git clone git@github.com:HazAT/pi-config ~/.pi/agent
+
+# 3. Run setup (installs packages + extension deps)
+cd ~/.pi/agent && ./setup.sh
+
+# 4. Add your API keys to ~/.pi/agent/auth.json
+
+# 5. Restart pi
+```
+
+### Updating
+
+```bash
+cd ~/.pi/agent && git pull
+```
+
+---
+
+## Skills
 
 Custom skills located in `skills/`:
 
@@ -28,7 +55,7 @@ Custom skills located in `skills/`:
 - **Google Workspace**: Use `google-workspace` for Drive/Docs/Calendar
 - **Requirements**: Use `brainstorming-requirement` before coding
 
-### Extensions
+## Extensions
 
 Pi extensions located in `pi-extensions/`:
 
@@ -40,78 +67,14 @@ Pi extensions located in `pi-extensions/`:
 - **todos** (`todos.ts`): Full-featured Markdown-based TODO manager (`/todos`). Supports listing, creating, claiming, and updating tasks with file locking and TUI.
 - **uv** (`uv.ts`): Intercepts Python commands (`pip`, `poetry`) to suggest or redirect to `uv` equivalents for faster package management.
 
-### Themes
+## Themes
 
 Custom themes located in `pi-themes/`.
 
-### Commands
+## Commands
 
 Custom prompt templates located in `commands/`.
 
-## Installation
+---
 
-You can install this package directly from GitHub or npm (once published).
-
-### Using `pi` CLI
-
-Install globally:
-
-```bash
-pi install git:github.com/pcaro/pcaropi
-```
-
-Or install for a specific project (saves to `.pi/settings.json`):
-
-```bash
-pi install -l git:github.com/pcaro/pcaropi
-```
-
-### Manual Installation
-
-Clone the repository and install it as a local package:
-
-```bash
-git clone https://github.com/pcaro/pcaropi.git
-pi install ./pcaropi
-```
-
-## Usage
-
-### Interactive Q&A (`answer`)
-
-The `answer` extension helps you systematically answer multiple questions from the assistant.
-
-1.  When the assistant asks multiple questions, run the `/answer` command or use `Ctrl+.` shortcut.
-2.  Pi will extract the questions and present an interactive form.
-3.  Fill in your answers and submit.
-4.  The answers are sent back to the assistant as a single structured message.
-
-### TODO Manager (`todos`)
-
-The `todos` extension provides a full-featured markdown-based task manager.
-
-1.  Run `/todos` to open the interactive TUI.
-2.  Use arrow keys to navigate tasks.
-3.  Press `Enter` to see actions (work, refine, close, etc.).
-4.  Use `Ctrl+Shift+w` to quickly "work" on a task (loads it into context).
-5.  Use `Ctrl+Shift+r` to "refine" a task (starts a refinement chat).
-
-### File Browser (`files`)
-
-The `files` extension lets you browse and manage files without leaving `pi`.
-
-1.  Run `/files` or press `Ctrl+Shift+o` to open the file browser.
-2.  It shows files in the current git tree and files referenced in the session.
-3.  Filter by typing.
-4.  Actions include: Reveal in Finder, Open, Quick Look (`Ctrl+Shift+r`), Edit, Add to prompt.
-
-## Development
-
-1.  Clone the repo.
-2.  Run `npm install`.
-3.  Make changes to extensions or skills.
-4.  Test by installing the local path: `pi install .` (in the repo root).
-
-## License
-
-ISC
+This config uses subagents (folder `agents`) using [pi-subagents](https://github.com/badlogic/pi-subagents).

@@ -1,0 +1,9 @@
+{
+  "cheap": ["opencode-go/minimax-m2.5", "opencode-go/kimi-k2.5", "opencode-go/glm-5"],
+  "fast": ["opencode-go/minimax-m2.5", "opencode-go/kimi-k2.5", "opencode-go/glm-5"],
+  "coding": ["opencode-go/kimi-k2.5", "opencode-go/glm-5", "openrouter/anthropic/claude-sonnet-4.5"],
+  "budget": ["opencode-go/minimax-m2.5", "opencode-go/kimi-k2.5", "google-gemini-cli/gemini-2.5-flash"],
+  "minimax": "opencode-go/minimax-m2.5",
+  "kimi": "opencode-go/kimi-k2.5",
+  "glm": "opencode-go/glm-5"
+}
