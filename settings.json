@@ -1,0 +1,18 @@
+{
+  "packages": [
+    "npm:pi-powerline-footer",
+    "npm:@aliou/pi-guardrails",
+    "npm:@tmustier/pi-tab-status",
+    "npm:@tmustier/pi-skill-creator",
+    "npm:@tmustier/pi-code-actions",
+    "npm:pi-subagents",
+    "git:github.com/pasky/chrome-cdp-skill@v1.0.1",
+    "git:github.com/nicobailon/pi-mcp-adapter",
+    "npm:@aliou/pi-processes"
+  ],
+  "lastChangelogVersion": "0.61.1",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "minimax-m2.7",
+  "defaultThinkingLevel": "medium",
+  "hideThinkingBlock": false
+}

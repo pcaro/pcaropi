@@ -6,6 +6,9 @@ auth.json
 sessions/
 bin/
 
+pi-crash.log
+pi-debug.log
+
 # Pi runtime files (created when this repo is ~/.pi/agent/)
 git/
 mcp-cache.json
@@ -16,6 +19,7 @@ session-manager-config.toml
 # Extension dependencies (install locally)
 pi-extensions/*/node_modules/
 pi-extensions/node_modules/
+skills/**/node_modules
 
 # OS files
 .DS_Store
