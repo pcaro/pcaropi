@@ -10,7 +10,8 @@
     "git:github.com/nicobailon/pi-mcp-adapter",
     "npm:@aliou/pi-processes",
     "npm:pi-prompt-template-model",
-    "https://github.com/affsantos/pi-screenshots"
+    "https://github.com/affsantos/pi-screenshots",
+    "npm:pi-interactive-shell"
   ],
   "lastChangelogVersion": "0.61.1",
   "defaultProvider": "opencode-go",
