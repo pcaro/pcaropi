@@ -1,7 +1,7 @@
 ---
 name: cli-tools
 description: |
-  CLI tools available: jq (JSON processing), fx (interactive JSON viewer), deep (structured data diff/patch), sqlite-utils (SQLite operations), gh (GitHub CLI), gw (git worktree manager), short (Shortcut stories), surf (browser automation), httpie (HTTP client), shot-scraper (web screenshots), flameshot (screenshots), rpl (search/replace), bq (BigQuery), snow (Snowflake), stern (Kubernetes logs)
+  CLI tools available: jq (JSON processing), fx (interactive JSON viewer), deep (structured data diff/patch), sqlite-utils (SQLite operations), gh (GitHub CLI), gw (git worktree manager), short (Shortcut stories), httpie (HTTP client), shot-scraper (web screenshots), flameshot (screenshots), rpl (search/replace), bq (BigQuery), snow (Snowflake), stern (Kubernetes logs)
 ---
 
 # CLI Tools Reference
@@ -139,28 +139,6 @@ Examples:
 
 ## HTTP & Web
 
-### surf - Browser Automation
-
-```bash
-surf <command> [args] [options]
-
-Commands:
-  go <url>          Navigate to URL
-  read              Get page accessibility tree
-  click <ref>       Click element
-  type <text>       Type text
-  screenshot        Capture screenshot
-  locate.role       Find by ARIA role
-  window.new        Create isolated browser window
-
-Examples:
-  surf go "https://example.com"
-  surf read
-  surf click e5
-```
-
-See `references/surf.md` for full command reference.
-
 ### httpie (http) - HTTP Client
 
 ```bash
@@ -288,7 +266,6 @@ Flags:
 | GitHub operations | gh |
 | Multiple git branches | gw |
 | Shortcut stories | short |
-| Browser automation | surf |
 | HTTP requests | httpie |
 | Web screenshots | shot-scraper |
 | Local screenshots | flameshot |
