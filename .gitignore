@@ -9,6 +9,8 @@ bin/
 pi-crash.log
 pi-debug.log
 
+powerline-footer/
+
 # Pi runtime files (created when this repo is ~/.pi/agent/)
 git/
 mcp-cache.json
