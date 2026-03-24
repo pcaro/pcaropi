@@ -8,25 +8,25 @@
  * - current context window usage + session totals (tokens/cost)
  */
 
-import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, ToolResultEvent } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@mariozechner/pi-coding-agent";
 import { DynamicBorder } from "@mariozechner/pi-coding-agent";
 import { Container, Key, Text, matchesKey, type Component, type TUI } from "@mariozechner/pi-tui";
 
-// Types for command grouping (matching pi's SlashCommandSource and SlashCommandLocation)
+// Types for command grouping (matching pi's SlashCommandSource and SlashCommandScope)
 type CommandSource = "extension" | "skill" | "prompt";
-type CommandLocation = "user" | "project" | "path";
+type CommandScope = "user" | "project" | "temporary";
 
 interface CommandGroup {
 	name: string;
 	source: CommandSource;
-	location?: CommandLocation;
+	scope?: CommandScope;
 	path?: string;
 }
 
 interface GroupedCommands {
 	project: Map<string, string[]>;
 	user: Map<string, string[]>;
-	path: Map<string, string[]>;
+	temporary: Map<string, string[]>;
 	prompts: string[];
 }
 import os from "node:os";
@@ -140,7 +140,7 @@ type SkillIndexEntry = {
 function buildSkillIndex(pi: ExtensionAPI, cwd: string): SkillIndexEntry[] {
 	return pi
 		.getCommands()
-		.filter((c) => c.sourceInfo?.source === "skill")
+		.filter((c) => c.source === "skill")
 		.map((c) => {
 			const p = c.sourceInfo?.path;
 			const resolvedPath = p ? normalizeReadPath(p, cwd) : "";
@@ -404,11 +404,11 @@ class ContextView implements Component {
 		const { groupedCommands, showFullPaths } = this.data;
 		const loaded = new Set(this.data.loadedSkills);
 
-		// Priority order: project → user → path
+		// Priority order: project → user → temporary
 		const locationOrder: Array<{ key: keyof GroupedCommands; label: string; badge: string; color: string }> = [
 			{ key: "project", label: "Project", badge: "[P]", color: "success" },
 			{ key: "user", label: "User", badge: "[U]", color: "accent" },
-			{ key: "path", label: "Path", badge: "[~]", color: "warning" },
+			{ key: "temporary", label: "Temporary", badge: "[T]", color: "warning" },
 		];
 
 		for (const loc of locationOrder) {
@@ -500,9 +500,9 @@ export default function contextExtension(pi: ExtensionAPI) {
 	const ensureCaches = (ctx: ExtensionContext) => {
 		const sid = ctx.sessionManager.getSessionId();
 		if (sid !== lastSessionId) {
-			lastSessionId = sid;
 			cachedLoadedSkills = getLoadedSkillsFromSession(ctx);
 			cachedSkillIndex = buildSkillIndex(pi, ctx.cwd);
+			lastSessionId = sid;
 		}
 		if (cachedSkillIndex.length === 0) {
 			cachedSkillIndex = buildSkillIndex(pi, ctx.cwd);
@@ -520,13 +520,16 @@ export default function contextExtension(pi: ExtensionAPI) {
 		return best?.name ?? null;
 	};
 
-	pi.on("tool_result", (event: ToolResultEvent, ctx: ExtensionContext) => {
+	pi.on("tool_result", (event, ctx: ExtensionContext) => {
 		// Only count successful reads.
 		if ((event as any).toolName !== "read") return;
 		if ((event as any).isError) return;
 
-		const input = (event as any).input as { path?: unknown } | undefined;
-		const p = typeof input?.path === "string" ? input.path : "";
+		// Safely extract path from input, guarding against prototype pollution
+		const rawInput = (event as any).input;
+		if (!rawInput || typeof rawInput !== "object" || Array.isArray(rawInput)) return;
+		const input = rawInput as { path?: unknown };
+		const p = typeof input.path === "string" ? input.path : "";
 		if (!p) return;
 
 		ensureCaches(ctx);
@@ -545,24 +548,24 @@ export default function contextExtension(pi: ExtensionAPI) {
 		handler: async (_args, ctx: ExtensionCommandContext) => {
 			const commands = pi.getCommands();
 
-			// Filter commands by source
-			const extensionCmds = commands.filter((c) => c.sourceInfo?.source === "extension");
-			const skillCmds = commands.filter((c) => c.sourceInfo?.source === "skill");
-			const promptCmds = commands.filter((c) => c.sourceInfo?.source === "prompt");
+			// Filter commands by source (c.source is canonical, not c.sourceInfo.source)
+			const extensionCmds = commands.filter((c) => c.source === "extension");
+			const skillCmds = commands.filter((c) => c.source === "skill");
+			const promptCmds = commands.filter((c) => c.source === "prompt");
 
-			// Build grouped commands by location (project/user/path) for extensions
+			// Build grouped commands by scope (project/user/temporary) for extensions
 			const groupedCommands: GroupedCommands = {
 				project: new Map(),
 				user: new Map(),
-				path: new Map(),
+				temporary: new Map(),
 				prompts: [],
 			};
 
-			// Group extension commands by location
+			// Group extension commands by scope
 			for (const c of extensionCmds) {
-				const location = (c.sourceInfo?.location as CommandLocation) ?? "user";
+				const scope = (c.sourceInfo?.scope as CommandScope) ?? "user";
 				const p = c.sourceInfo?.path ?? "<unknown>";
-				const groupMap = groupedCommands[location] ?? groupedCommands.user;
+				const groupMap = groupedCommands[scope] ?? groupedCommands.user;
 				const arr = groupMap.get(p) ?? [];
 				arr.push(c.name);
 				groupMap.set(p, arr);
