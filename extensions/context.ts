@@ -11,6 +11,24 @@
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, ToolResultEvent } from "@mariozechner/pi-coding-agent";
 import { DynamicBorder } from "@mariozechner/pi-coding-agent";
 import { Container, Key, Text, matchesKey, type Component, type TUI } from "@mariozechner/pi-tui";
+
+// Types for command grouping (matching pi's SlashCommandSource and SlashCommandLocation)
+type CommandSource = "extension" | "skill" | "prompt";
+type CommandLocation = "user" | "project" | "path";
+
+interface CommandGroup {
+	name: string;
+	source: CommandSource;
+	location?: CommandLocation;
+	path?: string;
+}
+
+interface GroupedCommands {
+	project: Map<string, string[]>;
+	user: Map<string, string[]>;
+	path: Map<string, string[]>;
+	prompts: string[];
+}
 import os from "node:os";
 import path from "node:path";
 import fs from "node:fs/promises";
@@ -122,13 +140,14 @@ type SkillIndexEntry = {
 function buildSkillIndex(pi: ExtensionAPI, cwd: string): SkillIndexEntry[] {
 	return pi
 		.getCommands()
-		.filter((c) => c.source === "skill")
+		.filter((c) => c.sourceInfo?.source === "skill")
 		.map((c) => {
-			const p = c.path ? normalizeReadPath(c.path, cwd) : "";
+			const p = c.sourceInfo?.path;
+			const resolvedPath = p ? normalizeReadPath(p, cwd) : "";
 			return {
 				name: normalizeSkillName(c.name),
-				skillFilePath: p,
-				skillDir: p ? path.dirname(p) : "",
+				skillFilePath: resolvedPath,
+				skillDir: resolvedPath ? path.dirname(resolvedPath) : "",
 			};
 		})
 		.filter((x) => x.name && x.skillDir);
@@ -270,6 +289,10 @@ type ContextViewData = {
 	skills: string[];
 	loadedSkills: string[];
 	session: { totalTokens: number; totalCost: number };
+	// New: grouped commands with full paths
+	groupedCommands: GroupedCommands;
+	showFullPaths: boolean;
+	cwd: string;
 };
 
 class ContextView implements Component {
@@ -289,9 +312,10 @@ class ContextView implements Component {
 
 		this.container = new Container();
 		this.container.addChild(new DynamicBorder((s) => theme.fg("accent", s)));
+		const pathsHint = data.showFullPaths ? theme.fg("muted", "  [p] hide paths") : theme.fg("dim", "  [p] show paths");
 		this.container.addChild(
 			new Text(
-				theme.fg("accent", theme.bold("Context")) + theme.fg("dim", "  (Esc/q/Enter to close)"),
+				theme.fg("accent", theme.bold("Context")) + theme.fg("dim", "  (Esc/q/Enter to close)") + pathsHint,
 				1,
 				0,
 			),
@@ -375,9 +399,43 @@ class ContextView implements Component {
 
 		lines.push(muted(`AGENTS (${this.data.agentFiles.length}): `) + text(this.data.agentFiles.length ? joinComma(this.data.agentFiles) : "(none)"));
 		lines.push("");
-		lines.push(muted(`Extensions (${this.data.extensions.length}): `) + text(this.data.extensions.length ? joinComma(this.data.extensions) : "(none)"));
 
+		// Render grouped commands with badges and optional paths
+		const { groupedCommands, showFullPaths } = this.data;
 		const loaded = new Set(this.data.loadedSkills);
+
+		// Priority order: project → user → path
+		const locationOrder: Array<{ key: keyof GroupedCommands; label: string; badge: string; color: string }> = [
+			{ key: "project", label: "Project", badge: "[P]", color: "success" },
+			{ key: "user", label: "User", badge: "[U]", color: "accent" },
+			{ key: "path", label: "Path", badge: "[~]", color: "warning" },
+		];
+
+		for (const loc of locationOrder) {
+			const groupMap = groupedCommands[loc.key];
+			if (groupMap.size === 0) continue;
+
+			lines.push(muted(`${loc.label} commands (${[...groupMap.values()].flat().length}):`));
+
+			// Sort paths for consistent display
+			const sortedPaths = [...groupMap.entries()].sort((a, b) => {
+				// "no path" entries last
+				if (a[0] === "<unknown>" || a[0] === "") return 1;
+				if (b[0] === "<unknown>" || b[0] === "") return -1;
+				return a[0].localeCompare(b[0]);
+			});
+
+			for (const [cmdPath, cmds] of sortedPaths) {
+				const pathLabel = showFullPaths && cmdPath !== "<unknown>" && cmdPath !== ""
+					? dim(` (${shortenPath(cmdPath, this.data.cwd)})`)
+					: "";
+				const displayPath = cmdPath === "<unknown>" ? "" : ` ${dim(`(${path.basename(cmdPath) || "?"})`)}`;
+				lines.push(`  ${this.theme.fg(loc.color, loc.badge)} ${text(cmds.sort().join(", "))}${displayPath}${pathLabel}`);
+			}
+			lines.push("");
+		}
+
+		// Skills section
 		const skillsRendered = this.data.skills.length
 			? joinCommaStyled(
 					this.data.skills,
@@ -386,6 +444,13 @@ class ContextView implements Component {
 				)
 			: "(none)";
 		lines.push(muted(`Skills (${this.data.skills.length}): `) + skillsRendered);
+
+		// Prompts section (if any)
+		if (groupedCommands.prompts.length > 0) {
+			lines.push("");
+			lines.push(muted(`Prompts (${groupedCommands.prompts.length}): `) + text(groupedCommands.prompts.sort().join(", ")));
+		}
+
 		lines.push("");
 		lines.push(
 			muted("Session: ") +
@@ -407,6 +472,11 @@ class ContextView implements Component {
 		) {
 			this.onDone();
 			return;
+		}
+		// Toggle paths visibility with 'p'
+		if (data.toLowerCase() === "p") {
+			this.data.showFullPaths = !this.data.showFullPaths;
+			this.invalidate();
 		}
 	}
 
@@ -474,12 +544,37 @@ export default function contextExtension(pi: ExtensionAPI) {
 		description: "Show loaded context overview",
 		handler: async (_args, ctx: ExtensionCommandContext) => {
 			const commands = pi.getCommands();
-			const extensionCmds = commands.filter((c) => c.source === "extension");
-			const skillCmds = commands.filter((c) => c.source === "skill");
 
+			// Filter commands by source
+			const extensionCmds = commands.filter((c) => c.sourceInfo?.source === "extension");
+			const skillCmds = commands.filter((c) => c.sourceInfo?.source === "skill");
+			const promptCmds = commands.filter((c) => c.sourceInfo?.source === "prompt");
+
+			// Build grouped commands by location (project/user/path) for extensions
+			const groupedCommands: GroupedCommands = {
+				project: new Map(),
+				user: new Map(),
+				path: new Map(),
+				prompts: [],
+			};
+
+			// Group extension commands by location
+			for (const c of extensionCmds) {
+				const location = (c.sourceInfo?.location as CommandLocation) ?? "user";
+				const p = c.sourceInfo?.path ?? "<unknown>";
+				const groupMap = groupedCommands[location] ?? groupedCommands.user;
+				const arr = groupMap.get(p) ?? [];
+				arr.push(c.name);
+				groupMap.set(p, arr);
+			}
+
+			// Collect prompt commands
+			groupedCommands.prompts = promptCmds.map((c) => c.name);
+
+			// Legacy extensionFiles for plain text mode (basenames only)
 			const extensionsByPath = new Map<string, string[]>();
 			for (const c of extensionCmds) {
-				const p = c.path ?? "<unknown>";
+				const p = c.sourceInfo?.path ?? "<unknown>";
 				const arr = extensionsByPath.get(p) ?? [];
 				arr.push(c.name);
 				extensionsByPath.set(p, arr);
@@ -568,6 +663,9 @@ export default function contextExtension(pi: ExtensionAPI) {
 				skills,
 				loadedSkills,
 				session: { totalTokens: sessionUsage.totalTokens, totalCost: sessionUsage.totalCost },
+				groupedCommands,
+				showFullPaths: false,
+				cwd: ctx.cwd,
 			};
 
 			await ctx.ui.custom<void>((tui, theme, _kb, done) => {
