@@ -11,11 +11,12 @@
     "npm:@aliou/pi-processes",
     "npm:pi-prompt-template-model",
     "https://github.com/affsantos/pi-screenshots",
-    "npm:pi-interactive-shell"
+    "npm:pi-interactive-shell",
+    "npm:@aliou/pi-linkup"
   ],
-  "lastChangelogVersion": "0.62.0",
+  "lastChangelogVersion": "0.63.1",
   "defaultProvider": "opencode-go",
-  "defaultModel": "minimax-m2.7",
+  "defaultModel": "minimax-m2.5",
   "defaultThinkingLevel": "medium",
   "hideThinkingBlock": false,
   "pi-screenshots": {
