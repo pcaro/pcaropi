@@ -408,8 +408,8 @@ async function selectExtractionModel(
 	for (const [provider, modelId] of EXTRACTION_MODELS) {
 		const model = modelRegistry.find(provider, modelId);
 		if (model) {
-			const apiKey = await modelRegistry.getApiKey(model);
-			if (apiKey) {
+				const auth = await modelRegistry.getApiKeyAndHeaders(model);
+			if (auth.ok) {
 				console.log(`[answer] Using extraction model: ${provider}/${modelId}`);
 				return model;
 			}
@@ -553,7 +553,8 @@ export default function (pi: ExtensionAPI) {
 			loader.onAbort = () => done(null);
 
 			const doExtract = async () => {
-				const apiKey = await ctx.modelRegistry.getApiKey(extractionModel);
+					const auth = await ctx.modelRegistry.getApiKeyAndHeaders(extractionModel);
+				if (!auth.ok) return null;
 				const userMessage: UserMessage = {
 					role: "user",
 					content: [{ type: "text", text: lastAssistantText! }],
@@ -563,7 +564,7 @@ export default function (pi: ExtensionAPI) {
 				const response = await complete(
 					extractionModel,
 					{ systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
-					{ apiKey, signal: loader.signal },
+					{ apiKey: auth.apiKey, headers: auth.headers, signal: loader.signal },
 				);
 
 				if (response.stopReason === "aborted") return null;

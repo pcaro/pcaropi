@@ -201,8 +201,8 @@ async function generateSessionTitle(
 			return buildFallbackTitle(ctx);
 		}
 
-		const apiKey = await ctx.modelRegistry.getApiKey(model);
-		if (!apiKey) {
+		const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
+		if (!auth.ok) {
 			return buildFallbackTitle(ctx);
 		}
 
@@ -215,7 +215,7 @@ async function generateSessionTitle(
 		const response = await complete(
 			model,
 			{ systemPrompt: TITLE_SYSTEM_PROMPT, messages: [userMessage] },
-			{ apiKey, signal }
+			{ apiKey: auth.apiKey, headers: auth.headers, signal }
 		);
 
 		if (response.stopReason === "aborted" || response.stopReason === "error") {

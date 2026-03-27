@@ -305,8 +305,8 @@ export default function (pi: ExtensionAPI) {
 			ctx.ui.notify("Generating summary...", "info");
 
 			// Generate a full summary of the conversation via LLM
-			const apiKey = await ctx.modelRegistry.getApiKey(model);
-			if (!apiKey) {
+			const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
+			if (!auth.ok) {
 				ctx.ui.notify(`No API key for ${model.provider}`, "error");
 				return;
 			}
@@ -335,7 +335,7 @@ export default function (pi: ExtensionAPI) {
 							},
 						],
 					},
-					{ apiKey, maxTokens: 4096 },
+					{ apiKey: auth.apiKey, headers: auth.headers, maxTokens: 4096 },
 				);
 
 				if (response.stopReason === "aborted") {
