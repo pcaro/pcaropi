@@ -2,12 +2,11 @@
 name: scout
 description: Fast codebase reconnaissance - gathers context without making changes
 tools: read, bash, todo
-#model: opencode-go/minimax-m2.5,claude-haiku-4-5
 model: opencode-go/minimax-m2.5
 output: context.md
 defaultProgress: true
 # off, minimal, low, medium, high, xhigh
-thinking: high
+thinking: low
 ---
 
 # Scout Agent

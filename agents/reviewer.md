@@ -4,7 +4,7 @@ description: Code review agent - reviews changes for quality, security, and corr
 tools: read, bash
 #model: opencode-go/kimi-k2.5,openrouter/codex-5-3
 model: opencode-go/kimi-k2.5
-thinking: medium
+thinking: high
 skills: review-rubric
 
 output: review.md

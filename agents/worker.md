@@ -2,9 +2,8 @@
 name: worker
 description: Implements tasks from todos - writes code, runs tests, commits with polished messages
 tools: read, bash, write, edit, todo
-# model: opencode-go/kimi-k2.5,openrouter/claude-sonnet-4-6
-model: opencode-go/kimi-k2.5
-
+model: opencode-go/minimax-m2.7
+# off, minimal, low, medium, high, xhigh
 thinking: minimal
 skill: commit
 ---
