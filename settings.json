@@ -3,20 +3,34 @@
     "npm:pi-powerline-footer",
     "npm:@aliou/pi-guardrails",
     "npm:@tmustier/pi-tab-status",
-    "npm:@tmustier/pi-skill-creator",
     "npm:@tmustier/pi-code-actions",
-    "npm:pi-subagents",
     "git:github.com/pasky/chrome-cdp-skill@v1.0.1",
-    "git:github.com/nicobailon/pi-mcp-adapter",
+    {
+      "source": "git:github.com/nicobailon/pi-mcp-adapter",
+      "extensions": [
+        "+index.ts"
+      ]
+    },
     "npm:@aliou/pi-processes",
     "npm:pi-prompt-template-model",
-    "https://github.com/affsantos/pi-screenshots",
     "npm:pi-interactive-shell",
-    "npm:@aliou/pi-linkup"
+    "npm:@aliou/pi-linkup",
+    "https://github.com/omaclaren/pi-markdown-preview",
+    "git:github.com/Whamp/pi-token-burden",
+    "git:github.com/HazAT/pi-smart-sessions",
+    {
+      "source": "git:github.com/MasuRii/pi-image-tools",
+      "extensions": [
+        "+index.ts"
+      ]
+    },
+    "npm:pi-slopchop",
+    "git:github.com/omerxx/pi-head",
+    "https://github.com/itisbryan/pi-add-dir"
   ],
-  "lastChangelogVersion": "0.65.0",
+  "lastChangelogVersion": "0.70.6",
   "defaultProvider": "opencode-go",
-  "defaultModel": "glm-5",
+  "defaultModel": "kimi-k2.6",
   "defaultThinkingLevel": "medium",
   "hideThinkingBlock": false,
   "pi-screenshots": {
@@ -33,5 +47,21 @@
       "model": "opencode-go/minimax-m2.7",
       "thinking": "medium"
     }
+  ],
+  "voice": {
+    "version": 2,
+    "enabled": true,
+    "language": "en",
+    "scope": "global",
+    "backend": "deepgram",
+    "toggleShortcut": "ctrl+alt+shift+v",
+    "onboarding": {
+      "completed": false,
+      "schemaVersion": 2
+    }
+  },
+  "enableInstallTelemetry": false,
+  "extensions": [
+    "-extensions/uv-with-cwd.ts"
   ]
 }
