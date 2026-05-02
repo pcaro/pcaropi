@@ -26,12 +26,13 @@
     },
     "npm:pi-slopchop",
     "git:github.com/omerxx/pi-head",
-    "https://github.com/itisbryan/pi-add-dir"
+    "https://github.com/itisbryan/pi-add-dir",
+    "npm:pi-subagents"
   ],
-  "lastChangelogVersion": "0.70.6",
+  "lastChangelogVersion": "0.72.1",
   "defaultProvider": "opencode-go",
-  "defaultModel": "kimi-k2.6",
-  "defaultThinkingLevel": "medium",
+  "defaultModel": "deepseek-v4-flash",
+  "defaultThinkingLevel": "off",
   "hideThinkingBlock": false,
   "pi-screenshots": {
     "dir": "~/Pictures/Capturas de pantalla/"
