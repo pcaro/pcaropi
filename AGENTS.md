@@ -246,6 +246,15 @@ ls ~/.pi/history/$(basename "$PWD")/research/
 
 **Default to delegation for anything substantial.**
 
+### Mandatory Skills for Python Code
+
+All new Python code **must** use these three skills — no exceptions:
+- **`uv`** — Python package and project manager (uv add, uv run, uv sync, uvx, uv build, etc.)
+- **`ty`** — Type checking with `ty` (pyright-based, extremely fast)
+- **`ruff`** — Linting and formatting with `ruff` (extremely fast linter/formatter)
+
+They load automatically via the table below. Always read and apply them before writing, linting, formatting, or type-checking any Python code. Never resort to pip, mypy, black, or flake8.
+
 ### Skill Triggers
 
 Skills provide specialized instructions for specific tasks. Load them when the context matches. Also provide them to subagents depending on the task.
@@ -258,6 +267,7 @@ Skills provide specialized instructions for specific tasks. Load them when the c
 | Building web components, pages, or frontend interfaces | `frontend-design` |
 | Working with GitHub | `github` |
 | Asked to simplify/clean up/refactor code | `code-simplifier` |
+| Writing or working with **Python code** | **`uv`, `ty`, `ruff`** (all three, always) |
 | Reading, reviewing, or analyzing a pi session JSONL file | `session-reader` |
 | Adding or configuring an MCP server (global or project-local) | `add-mcp-server` |
 | Running dev servers, test watchers, background tasks, or any process| Use `process` tool |
