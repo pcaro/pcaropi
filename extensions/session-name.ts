@@ -6,11 +6,18 @@
  * to summarize the conversation into a 3-7 word title.
  */
 
-import type { ExtensionAPI, ExtensionContext, TurnEndEvent, SessionStartEvent, SessionSwitchEvent, SessionShutdownEvent } from "@mariozechner/pi-coding-agent";
 import { complete, type UserMessage } from "@mariozechner/pi-ai";
+import type {
+	ExtensionAPI,
+	ExtensionContext,
+	SessionShutdownEvent,
+	SessionStartEvent,
+	SessionSwitchEvent,
+	TurnEndEvent,
+} from "@mariozechner/pi-coding-agent";
 
 // Model for title generation (lightweight, fast, cheap)
-const TITLE_MODEL = "google/gemini-2.5-flash-lite";
+const TITLE_MODEL = "opencode-go/deepseek-v4-flash";
 const TITLE_PROVIDER = "openrouter";
 
 // Title constraints
@@ -186,7 +193,7 @@ function extractConversationText(ctx: ExtensionContext): string {
 async function generateSessionTitle(
 	pi: ExtensionAPI,
 	ctx: ExtensionContext,
-	signal?: AbortSignal
+	signal?: AbortSignal,
 ): Promise<string> {
 	const conversationText = extractConversationText(ctx);
 
@@ -215,7 +222,7 @@ async function generateSessionTitle(
 		const response = await complete(
 			model,
 			{ systemPrompt: TITLE_SYSTEM_PROMPT, messages: [userMessage] },
-			{ apiKey: auth.apiKey, headers: auth.headers, signal }
+			{ apiKey: auth.apiKey, headers: auth.headers, signal },
 		);
 
 		if (response.stopReason === "aborted" || response.stopReason === "error") {
@@ -258,7 +265,10 @@ async function generateSessionTitle(
 /**
  * Reset naming state when a new session starts.
  */
-function handleSessionStart(_event: SessionStartEvent, ctx: ExtensionContext): void {
+function handleSessionStart(
+	_event: SessionStartEvent,
+	ctx: ExtensionContext,
+): void {
 	const sessionId = ctx.sessionManager.getSessionId();
 	sessionStates.set(sessionId, { hasAutoNamed: false });
 }
@@ -266,7 +276,10 @@ function handleSessionStart(_event: SessionStartEvent, ctx: ExtensionContext): v
 /**
  * Reset naming state when switching sessions.
  */
-function handleSessionSwitch(_event: SessionSwitchEvent, ctx: ExtensionContext): void {
+function handleSessionSwitch(
+	_event: SessionSwitchEvent,
+	ctx: ExtensionContext,
+): void {
 	const sessionId = ctx.sessionManager.getSessionId();
 	sessionStates.set(sessionId, { hasAutoNamed: false });
 }
@@ -288,7 +301,7 @@ function handleSessionShutdown(event: SessionShutdownEvent): void {
 async function handleTurnEnd(
 	event: TurnEndEvent,
 	ctx: ExtensionContext,
-	pi: ExtensionAPI
+	pi: ExtensionAPI,
 ): Promise<void> {
 	// Only name on successful completion
 	if (event.message.role !== "assistant") return;

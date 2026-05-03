@@ -11,20 +11,28 @@
  */
 
 import {
+	type Api,
+	complete,
+	type Model,
+	type UserMessage,
+} from "@mariozechner/pi-ai";
+import type {
+	ExtensionAPI,
+	ExtensionContext,
+} from "@mariozechner/pi-coding-agent";
+import { BorderedLoader } from "@mariozechner/pi-coding-agent";
+import {
 	type Component,
 	Editor,
 	type EditorTheme,
 	Key,
 	matchesKey,
-	truncateToWidth,
+	SelectList,
 	type TUI,
+	truncateToWidth,
 	visibleWidth,
 	wrapTextWithAnsi,
-	SelectList
 } from "@mariozechner/pi-tui";
-import { complete, type Model, type Api, type UserMessage } from "@mariozechner/pi-ai";
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { BorderedLoader } from "@mariozechner/pi-coding-agent";
 import { Type } from "@sinclair/typebox";
 
 export interface QuestionOption {
@@ -68,7 +76,9 @@ export class PolishedQuestionnaire implements Component {
 		onDone: (result: any | null) => void,
 	) {
 		this.questions = questions;
-		this.answers = questions.map((q) => q.initialValue || (q.type === "multi-choice" ? [] : ""));
+		this.answers = questions.map(
+			(q) => q.initialValue || (q.type === "multi-choice" ? [] : ""),
+		);
 		this.tui = tui;
 		this.onDone = onDone;
 
@@ -96,7 +106,9 @@ export class PolishedQuestionnaire implements Component {
 		const currentAnswer = this.answers[this.currentIndex];
 
 		if (q.type === "text") {
-			this.editor.setText(typeof currentAnswer === "string" ? currentAnswer : "");
+			this.editor.setText(
+				typeof currentAnswer === "string" ? currentAnswer : "",
+			);
 			this.selectList = undefined;
 		} else {
 			const items = (q.options || []).map((opt) => ({
@@ -110,7 +122,7 @@ export class PolishedQuestionnaire implements Component {
 				selectedText: (t) => this.cyan(this.bold(t)),
 				description: (t) => this.dim(t),
 			});
-			
+
 			const updateMultiChoiceLabels = () => {
 				if (q.type !== "multi-choice") return;
 				const currentSelection = this.answers[this.currentIndex] as string[];
@@ -120,9 +132,9 @@ export class PolishedQuestionnaire implements Component {
 					item.label = `${isSelected ? this.green("[x]") : this.dim("[ ]")} ${opt.label}`;
 				});
 			};
-			
+
 			updateMultiChoiceLabels();
-			
+
 			this.selectList.onSelect = (item) => {
 				if (q.type === "choice") {
 					this.answers[this.currentIndex] = item.value as string;
@@ -177,7 +189,7 @@ export class PolishedQuestionnaire implements Component {
 		const results = this.questions.map((q, i) => ({
 			question: q.question,
 			answer: this.answers[i],
-			id: q.id
+			id: q.id,
 		}));
 		this.onDone(results);
 	}
@@ -193,7 +205,11 @@ export class PolishedQuestionnaire implements Component {
 				this.submit();
 				return;
 			}
-			if (matchesKey(data, Key.escape) || matchesKey(data, Key.ctrl("c")) || data.toLowerCase() === "n") {
+			if (
+				matchesKey(data, Key.escape) ||
+				matchesKey(data, Key.ctrl("c")) ||
+				data.toLowerCase() === "n"
+			) {
 				this.showingConfirmation = false;
 				this.invalidate();
 				this.tui.requestRender();
@@ -216,14 +232,20 @@ export class PolishedQuestionnaire implements Component {
 				return;
 			}
 			if (matchesKey(data, Key.shift("tab"))) {
-				this.navigateTo((this.currentIndex - 1 + this.questions.length) % this.questions.length);
+				this.navigateTo(
+					(this.currentIndex - 1 + this.questions.length) %
+						this.questions.length,
+				);
 				this.tui.requestRender();
 				return;
 			}
 		}
 
 		if (q.type === "text") {
-			if (matchesKey(data, Key.enter) && !matchesKey(data, Key.shift("enter"))) {
+			if (
+				matchesKey(data, Key.enter) &&
+				!matchesKey(data, Key.shift("enter"))
+			) {
 				this.nextOrSubmit();
 				return;
 			}
@@ -262,10 +284,14 @@ export class PolishedQuestionnaire implements Component {
 			const paddedContent = " ".repeat(leftPad) + safeContent;
 			const contentLen = visibleWidth(paddedContent);
 			const rightPad = Math.max(0, boxWidth - contentLen - 2);
-			return this.dim("│") + paddedContent + " ".repeat(rightPad) + this.dim("│");
+			return (
+				this.dim("│") + paddedContent + " ".repeat(rightPad) + this.dim("│")
+			);
 		};
-		const emptyBoxLine = () => this.dim("│") + " ".repeat(boxWidth - 2) + this.dim("│");
-		const padToWidth = (line: string) => line + " ".repeat(Math.max(0, width - visibleWidth(line)));
+		const emptyBoxLine = () =>
+			this.dim("│") + " ".repeat(boxWidth - 2) + this.dim("│");
+		const padToWidth = (line: string) =>
+			line + " ".repeat(Math.max(0, width - visibleWidth(line)));
 
 		lines.push(padToWidth(this.dim("╭" + horizontalLine(boxWidth - 2) + "╮")));
 		const title = `${this.bold(this.cyan("Input Required"))}${this.questions.length > 1 ? this.dim(` (${this.currentIndex + 1}/${this.questions.length})`) : ""}`;
@@ -274,7 +300,10 @@ export class PolishedQuestionnaire implements Component {
 
 		if (this.questions.length > 1) {
 			const progressParts = this.questions.map((q, i) => {
-				const hasAns = q.type === "multi-choice" ? (this.answers[i] as string[]).length > 0 : (this.answers[i] as string).length > 0;
+				const hasAns =
+					q.type === "multi-choice"
+						? (this.answers[i] as string[]).length > 0
+						: (this.answers[i] as string).length > 0;
 				if (i === this.currentIndex) return this.cyan("●");
 				return hasAns ? this.green("●") : this.dim("○");
 			});
@@ -283,12 +312,17 @@ export class PolishedQuestionnaire implements Component {
 		}
 
 		const q = this.questions[this.currentIndex];
-		const wrappedQ = wrapTextWithAnsi(`${this.bold("?")} ${q.question}`, contentWidth);
-		wrappedQ.forEach(l => lines.push(padToWidth(boxLine(l))));
+		const wrappedQ = wrapTextWithAnsi(
+			`${this.bold("?")} ${q.question}`,
+			contentWidth,
+		);
+		wrappedQ.forEach((l) => lines.push(padToWidth(boxLine(l))));
 
 		if (q.context) {
 			lines.push(padToWidth(emptyBoxLine()));
-			wrapTextWithAnsi(this.gray(`> ${q.context}`), contentWidth - 2).forEach(l => lines.push(padToWidth(boxLine(l, 4))));
+			wrapTextWithAnsi(this.gray(`> ${q.context}`), contentWidth - 2).forEach(
+				(l) => lines.push(padToWidth(boxLine(l, 4))),
+			);
 		}
 
 		lines.push(padToWidth(emptyBoxLine()));
@@ -299,16 +333,26 @@ export class PolishedQuestionnaire implements Component {
 				lines.push(padToWidth(boxLine(editorLines[i], 4)));
 			}
 		} else {
-			const currentSelection = this.answers[this.currentIndex] as string | string[];
+			const currentSelection = this.answers[this.currentIndex] as
+				| string
+				| string[];
 			const selectLines = this.selectList?.render(contentWidth - 2) || [];
-			selectLines.forEach(l => {
+			selectLines.forEach((l) => {
 				lines.push(padToWidth(boxLine(l, 2)));
 			});
 
 			if (q.type === "multi-choice") {
 				lines.push(padToWidth(emptyBoxLine()));
 				const selectedCount = (currentSelection as string[]).length;
-				lines.push(padToWidth(boxLine(this.dim(`Selected: ${this.green(selectedCount.toString())} items.`))));
+				lines.push(
+					padToWidth(
+						boxLine(
+							this.dim(
+								`Selected: ${this.green(selectedCount.toString())} items.`,
+							),
+						),
+					),
+				);
 			}
 		}
 
@@ -317,12 +361,16 @@ export class PolishedQuestionnaire implements Component {
 		lines.push(padToWidth(this.dim("├" + horizontalLine(boxWidth - 2) + "┤")));
 		let controls = "";
 		if (this.showingConfirmation) {
-			controls = truncateToWidth(`${this.yellow("Confirm?")} ${this.dim("(Enter/y: yes, Esc/n: no)")}`, contentWidth);
+			controls = truncateToWidth(
+				`${this.yellow("Confirm?")} ${this.dim("(Enter/y: yes, Esc/n: no)")}`,
+				contentWidth,
+			);
 		} else {
 			const parts = [];
 			if (this.questions.length > 1) parts.push(`${this.dim("Tab")} next/prev`);
 			if (q.type === "text") parts.push(`${this.dim("Enter")} done`);
-			else if (q.type === "multi-choice") parts.push(`${this.dim("Space")} toggle · ${this.dim("Enter")} finish`);
+			else if (q.type === "multi-choice")
+				parts.push(`${this.dim("Space")} toggle · ${this.dim("Enter")} finish`);
 			else parts.push(`${this.dim("Enter")} select`);
 			parts.push(`${this.dim("Esc")} cancel`);
 			controls = truncateToWidth(parts.join(" · "), contentWidth);
@@ -392,7 +440,7 @@ Example output:
 // Modelos preferidos para extracción de preguntas (proveedor, modelo)
 // Se busca el primero que esté disponible y tenga API key
 const EXTRACTION_MODELS: [string, string][] = [
-	["openrouter", "google/gemini-2.5-flash-lite"],
+	["openrouter", "opencode-go/deepseek-v4-flash"],
 	["openai-codex", "gpt-5.1-codex-mini"],
 	["anthropic", "claude-haiku-4-5"],
 	["google-gemini-cli", "gemini-2.0-flash"],
@@ -408,7 +456,7 @@ async function selectExtractionModel(
 	for (const [provider, modelId] of EXTRACTION_MODELS) {
 		const model = modelRegistry.find(provider, modelId);
 		if (model) {
-				const auth = await modelRegistry.getApiKeyAndHeaders(model);
+			const auth = await modelRegistry.getApiKeyAndHeaders(model);
 			if (auth.ok) {
 				console.log(`[answer] Using extraction model: ${provider}/${modelId}`);
 				return model;
@@ -416,7 +464,9 @@ async function selectExtractionModel(
 		}
 	}
 
-	console.log(`[answer] No preferred extraction model found, using current model: ${currentModel.id}`);
+	console.log(
+		`[answer] No preferred extraction model found, using current model: ${currentModel.id}`,
+	);
 	return currentModel;
 }
 
@@ -426,7 +476,8 @@ function parseExtractionResult(text: string): ExtractionResult | null {
 		const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
 		if (jsonMatch) jsonStr = jsonMatch[1].trim();
 		const parsed = JSON.parse(jsonStr);
-		if (parsed && Array.isArray(parsed.questions)) return parsed as ExtractionResult;
+		if (parsed && Array.isArray(parsed.questions))
+			return parsed as ExtractionResult;
 		return null;
 	} catch {
 		return null;
@@ -438,20 +489,32 @@ export default function (pi: ExtensionAPI) {
 	pi.registerTool({
 		name: "ask_user",
 		label: "Ask User",
-		description: "Ask the user a multiple-choice question with descriptions and trade-offs.",
+		description:
+			"Ask the user a multiple-choice question with descriptions and trade-offs.",
 		parameters: Type.Object({
 			question: Type.String({ description: "The question to ask." }),
 			options: Type.Array(
 				Type.Object({
 					label: Type.String({ description: "The label for this option." }),
-					description: Type.Optional(Type.String({ description: "A detailed description or trade-off for this option." })),
-					value: Type.Optional(Type.String({ description: "The value to return if selected (defaults to label)." })),
+					description: Type.Optional(
+						Type.String({
+							description:
+								"A detailed description or trade-off for this option.",
+						}),
+					),
+					value: Type.Optional(
+						Type.String({
+							description:
+								"The value to return if selected (defaults to label).",
+						}),
+					),
 				}),
 				{ description: "The list of options to choose from." },
 			),
 			multiSelect: Type.Optional(
 				Type.Boolean({
-					description: "Whether the user can select multiple options. Defaults to false.",
+					description:
+						"Whether the user can select multiple options. Defaults to false.",
 					default: false,
 				}),
 			),
@@ -460,7 +523,12 @@ export default function (pi: ExtensionAPI) {
 		async execute(toolCallId, params, signal, onUpdate, ctx) {
 			if (!ctx.hasUI) {
 				return {
-					content: [{ type: "text", text: "Error: `ask_user` tool requires interactive mode." }],
+					content: [
+						{
+							type: "text",
+							text: "Error: `ask_user` tool requires interactive mode.",
+						},
+					],
 					isError: true,
 				};
 			}
@@ -478,9 +546,11 @@ export default function (pi: ExtensionAPI) {
 				},
 			];
 
-			const results = await ctx.ui.custom<any[] | null>((tui, _theme, _kb, done) => {
-				return new PolishedQuestionnaire(questions, tui, done);
-			});
+			const results = await ctx.ui.custom<any[] | null>(
+				(tui, _theme, _kb, done) => {
+					return new PolishedQuestionnaire(questions, tui, done);
+				},
+			);
 
 			if (results === null) {
 				return {
@@ -494,7 +564,12 @@ export default function (pi: ExtensionAPI) {
 			if (params.multiSelect) {
 				const selections = answer as string[];
 				return {
-					content: [{ type: "text", text: `User selected: ${selections.join(", ") || "nothing"}` }],
+					content: [
+						{
+							type: "text",
+							text: `User selected: ${selections.join(", ") || "nothing"}`,
+						},
+					],
 					details: { selections },
 				};
 			} else {
@@ -527,11 +602,16 @@ export default function (pi: ExtensionAPI) {
 				const msg = entry.message;
 				if ("role" in msg && msg.role === "assistant") {
 					if (msg.stopReason !== "stop") {
-						ctx.ui.notify(`Last assistant message incomplete (${msg.stopReason})`, "error");
+						ctx.ui.notify(
+							`Last assistant message incomplete (${msg.stopReason})`,
+							"error",
+						);
 						return;
 					}
 					const textParts = msg.content
-						.filter((c): c is { type: "text"; text: string } => c.type === "text")
+						.filter(
+							(c): c is { type: "text"; text: string } => c.type === "text",
+						)
 						.map((c) => c.text);
 					if (textParts.length > 0) {
 						lastAssistantText = textParts.join("\n");
@@ -546,40 +626,58 @@ export default function (pi: ExtensionAPI) {
 			return;
 		}
 
-		const extractionModel = await selectExtractionModel(ctx.model, ctx.modelRegistry);
+		const extractionModel = await selectExtractionModel(
+			ctx.model,
+			ctx.modelRegistry,
+		);
 
-		const extractionResult = await ctx.ui.custom<ExtractionResult | null>((tui, theme, _kb, done) => {
-			const loader = new BorderedLoader(tui, theme, `Extracting questions using ${extractionModel.id}...`);
-			loader.onAbort = () => done(null);
+		const extractionResult = await ctx.ui.custom<ExtractionResult | null>(
+			(tui, theme, _kb, done) => {
+				const loader = new BorderedLoader(
+					tui,
+					theme,
+					`Extracting questions using ${extractionModel.id}...`,
+				);
+				loader.onAbort = () => done(null);
 
-			const doExtract = async () => {
-					const auth = await ctx.modelRegistry.getApiKeyAndHeaders(extractionModel);
-				if (!auth.ok) return null;
-				const userMessage: UserMessage = {
-					role: "user",
-					content: [{ type: "text", text: lastAssistantText! }],
-					timestamp: Date.now(),
+				const doExtract = async () => {
+					const auth =
+						await ctx.modelRegistry.getApiKeyAndHeaders(extractionModel);
+					if (!auth.ok) return null;
+					const userMessage: UserMessage = {
+						role: "user",
+						content: [{ type: "text", text: lastAssistantText! }],
+						timestamp: Date.now(),
+					};
+
+					const response = await complete(
+						extractionModel,
+						{ systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
+						{
+							apiKey: auth.apiKey,
+							headers: auth.headers,
+							signal: loader.signal,
+						},
+					);
+
+					if (response.stopReason === "aborted") return null;
+
+					const responseText = response.content
+						.filter(
+							(c): c is { type: "text"; text: string } => c.type === "text",
+						)
+						.map((c) => c.text)
+						.join("\n");
+
+					return parseExtractionResult(responseText);
 				};
 
-				const response = await complete(
-					extractionModel,
-					{ systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
-					{ apiKey: auth.apiKey, headers: auth.headers, signal: loader.signal },
-				);
-
-				if (response.stopReason === "aborted") return null;
-
-				const responseText = response.content
-					.filter((c): c is { type: "text"; text: string } => c.type === "text")
-					.map((c) => c.text)
-					.join("\n");
-
-				return parseExtractionResult(responseText);
-			};
-
-			doExtract().then(done).catch(() => done(null));
-			return loader;
-		});
+				doExtract()
+					.then(done)
+					.catch(() => done(null));
+				return loader;
+			},
+		);
 
 		if (extractionResult === null) {
 			ctx.ui.notify("Cancelled", "info");
@@ -598,28 +696,32 @@ export default function (pi: ExtensionAPI) {
 					type: q.multiSelect ? "multi-choice" : "choice",
 					question: q.question,
 					context: q.context,
-					options: q.options.map((opt) => ({ label: opt, value: opt }))
+					options: q.options.map((opt) => ({ label: opt, value: opt })),
 				};
 			}
 			return {
 				id: `q${i}`,
 				type: "text",
 				question: q.question,
-				context: q.context
+				context: q.context,
 			};
 		});
 
-		const answersResult = await ctx.ui.custom<any[] | null>((tui, _theme, _kb, done) => {
-			return new PolishedQuestionnaire(questions, tui, done);
-		});
+		const answersResult = await ctx.ui.custom<any[] | null>(
+			(tui, _theme, _kb, done) => {
+				return new PolishedQuestionnaire(questions, tui, done);
+			},
+		);
 
 		if (answersResult === null) {
 			ctx.ui.notify("Cancelled", "info");
 			return;
 		}
 
-		const responseParts = answersResult.map(res => {
-			const q = questions.find(question => question.question === res.question);
+		const responseParts = answersResult.map((res) => {
+			const q = questions.find(
+				(question) => question.question === res.question,
+			);
 			let part = `Q: ${res.question}\n`;
 			if (q?.context) part += `> ${q.context}\n`;
 			part += `A: ${res.answer || "(no answer)"}`;
@@ -629,7 +731,9 @@ export default function (pi: ExtensionAPI) {
 		pi.sendMessage(
 			{
 				customType: "answers",
-				content: "I answered your questions in the following way:\n\n" + responseParts.join("\n\n"),
+				content:
+					"I answered your questions in the following way:\n\n" +
+					responseParts.join("\n\n"),
 				display: true,
 			},
 			{ triggerTurn: true },
@@ -637,7 +741,8 @@ export default function (pi: ExtensionAPI) {
 	};
 
 	pi.registerCommand("answer", {
-		description: "Extract questions from last assistant message into interactive Q&A",
+		description:
+			"Extract questions from last assistant message into interactive Q&A",
 		handler: (_args, ctx) => answerHandler(ctx),
 	});
 
