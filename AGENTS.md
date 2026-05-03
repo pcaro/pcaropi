@@ -85,6 +85,11 @@ When you're about to ask the user whether they have a tool, command, or dependen
 ```bash
 # Instead of asking "Do you have ffmpeg installed?"
 ffmpeg -version
+
+# For GitHub tasks, always use gh CLI first
+gh repo clone owner/repo
+gh pr list
+gh issue create --title "..."
 ```
 
 - If it works → proceed
@@ -265,7 +270,7 @@ Skills provide specialized instructions for specific tasks. Load them when the c
 | User wants to brainstorm / build something significant | `brainstorm` |
 | Making git commits (always — every commit must be polished and descriptive) | `commit` |
 | Building web components, pages, or frontend interfaces | `frontend-design` |
-| Working with GitHub | `github` |
+| Working with GitHub | `github` (always use `gh` CLI for repo downloads and GitHub tasks) |
 | Asked to simplify/clean up/refactor code | `code-simplifier` |
 | Writing or working with **Python code** | **`uv`, `ty`, `ruff`** (all three, always) |
 | Reading, reviewing, or analyzing a pi session JSONL file | `session-reader` |
