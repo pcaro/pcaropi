@@ -28,12 +28,14 @@
     "git:github.com/omerxx/pi-head",
     "https://github.com/itisbryan/pi-add-dir",
     "npm:pi-subagents",
-    "npm:pi-lens"
+    "npm:pi-lens",
+    "npm:pi-schedule-prompt",
+    "npm:pi-ask-user"
   ],
-  "lastChangelogVersion": "0.72.1",
-  "defaultProvider": "deepseek",
-  "defaultModel": "deepseek-v4-pro",
-  "defaultThinkingLevel": "high",
+  "lastChangelogVersion": "0.73.0",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "minimax-m2.7",
+  "defaultThinkingLevel": "off",
   "hideThinkingBlock": false,
   "pi-screenshots": {
     "dir": "~/Pictures/Capturas de pantalla/"
