@@ -32,15 +32,27 @@
     "npm:pi-schedule-prompt",
     "npm:pi-ask-user"
   ],
-  "lastChangelogVersion": "0.73.0",
+  "lastChangelogVersion": "0.74.0",
   "defaultProvider": "opencode-go",
-  "defaultModel": "minimax-m2.7",
-  "defaultThinkingLevel": "off",
-  "hideThinkingBlock": false,
+  "defaultModel": "qwen3.6-plus",
+  "defaultThinkingLevel": "high",
+  "hideThinkingBlock": true,
   "pi-screenshots": {
     "dir": "~/Pictures/Capturas de pantalla/"
   },
-  "powerline": "default",
+  "powerline": {
+    "preset": "default",
+    "customItems": [
+      {
+        "id": "ci",
+        "statusKey": "ci",
+        "position": "right",
+        "color": "success",
+        "hideWhenMissing": true,
+        "excludeFromExtensionStatuses": true
+      }
+    ]
+  },
   "modelProfiles": [
     {
       "model": "google-gemini-cli/gemini-3.1-pro-preview",
