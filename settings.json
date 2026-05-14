@@ -17,11 +17,10 @@
     "npm:@aliou/pi-linkup",
     "https://github.com/omaclaren/pi-markdown-preview",
     "git:github.com/Whamp/pi-token-burden",
-    "git:github.com/HazAT/pi-smart-sessions",
     {
-      "source": "git:github.com/MasuRii/pi-image-tools",
+      "source": "git:github.com/HazAT/pi-smart-sessions",
       "extensions": [
-        "+index.ts"
+        "+extensions/smart-sessions.ts"
       ]
     },
     "npm:pi-slopchop",
@@ -33,9 +32,9 @@
     "npm:pi-ask-user"
   ],
   "lastChangelogVersion": "0.74.0",
-  "defaultProvider": "opencode-go",
+  "defaultProvider": "opencode",
   "defaultModel": "qwen3.6-plus",
-  "defaultThinkingLevel": "high",
+  "defaultThinkingLevel": "medium",
   "hideThinkingBlock": true,
   "pi-screenshots": {
     "dir": "~/Pictures/Capturas de pantalla/"
