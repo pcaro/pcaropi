@@ -35,16 +35,16 @@ cd ~/.pi/agent && git pull
 
 Custom skills located in `skills/`:
 
-| Skill | When to use | Tools | Scripts/Files |
-|-------|-------------|-------|---------------|
-| **[show-me](skills/show-me/README.md)** | Prove that code works — run demos, record terminal sessions | Bash, Read | `scripts/kitty_screenshot.sh`, `scripts/wait_for_text.sh` |
-| **summarize** | Convert URL/PDF/DOCX to Markdown, summarize content | Bash, Read | `to-markdown.mjs` |
-| **google-workspace** | Access Drive, Docs, Calendar, Gmail, Sheets without MCP | Bash | `scripts/auth.js`, `scripts/workspace.js` |
-| **github** | Interact with GitHub — PRs, issues, CI runs, API queries | Bash | `gh` CLI |
-| **web-browser** | Interact with web pages — click, fill forms, navigate | Bash | `scripts/*.js` (CDP) |
-| **cli-tools** | Reference for selecting tools — jq, fx, gh, sqlite-utils, etc. | (reference only) | — |
-| **update-changelog** | Update CHANGELOG.md before releases | (reference only) | — |
-| **brainstorming-requirement** | Refine ideas into designs through structured questioning | ask_user, write | — |
+| Skill                                   | When to use                                                    | Tools            | Scripts/Files                                             |
+| --------------------------------------- | -------------------------------------------------------------- | ---------------- | --------------------------------------------------------- |
+| **[show-me](skills/show-me/README.md)** | Prove that code works — run demos, record terminal sessions    | Bash, Read       | `scripts/kitty_screenshot.sh`, `scripts/wait_for_text.sh` |
+| **summarize**                           | Convert URL/PDF/DOCX to Markdown, summarize content            | Bash, Read       | `to-markdown.mjs`                                         |
+| **google-workspace**                    | Access Drive, Docs, Calendar, Gmail, Sheets without MCP        | Bash             | `scripts/auth.js`, `scripts/workspace.js`                 |
+| **github**                              | Interact with GitHub — PRs, issues, CI runs, API queries       | Bash             | `gh` CLI                                                  |
+| **web-browser**                         | Interact with web pages — click, fill forms, navigate          | Bash             | `scripts/*.js` (CDP)                                      |
+| **cli-tools**                           | Reference for selecting tools — jq, fx, gh, sqlite-utils, etc. | (reference only) | —                                                         |
+| **update-changelog**                    | Update CHANGELOG.md before releases                            | (reference only) | —                                                         |
+| **brainstorming-requirement**           | Refine ideas into designs through structured questioning       | ask_user, write  | —                                                         |
 
 #### Quick Reference
 
@@ -57,15 +57,45 @@ Custom skills located in `skills/`:
 
 ## Extensions
 
-Pi extensions located in `pi-extensions/`:
+### Internas (en este repo `pi-extensions/`)
 
-- **answer** (`answer.ts`): Interactive Q&A extension. Extract questions from assistant messages and answer them one by one (`/answer` or `Ctrl+.`).
-- **context** (`context.ts`): Visualize current context usage (tokens, cost, loaded files/skills) via `/context`.
-- **files** (`files.ts`): Interactive file browser (`/files` or `Ctrl+Shift+o`) with git status, quick look (`Ctrl+Shift+r`), and finder reveal (`Ctrl+Shift+f`).
-- **notify** (`notify.ts`): Sends desktop notifications (Linux/`notify-send`) when the agent completes a turn.
-- **session-breakdown** (`session-breakdown.ts`): Visualize session history (tokens/cost/messages) over 7/30/90 days via `/session-breakdown`.
-- **todos** (`todos.ts`): Full-featured Markdown-based TODO manager (`/todos`). Supports listing, creating, claiming, and updating tasks with file locking and TUI.
-- **uv** (`uv.ts`): Intercepts Python commands (`pip`, `poetry`) to suggest or redirect to `uv` equivalents for faster package management.
+| Extensión             | Archivo                | ¿Qué hace?                                                                                                                                        |
+| --------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **answer**            | `answer.ts`            | Q&A interactivo. Extrae preguntas de mensajes del asistente y las responde una por una (`/answer` o `Ctrl+.`).                                    |
+| **context**           | `context.ts`           | Visualiza el uso actual de contexto (tokens, coste, archivos/skills cargados) vía `/context`.                                                     |
+| **files**             | `files.ts`             | Explorador de archivos interactivo (`/files` o `Ctrl+Shift+o`) con estado git, vista rápida (`Ctrl+Shift+r`) y reveal en Finder (`Ctrl+Shift+f`). |
+| **notify**            | `notify.ts`            | Notificaciones de escritorio (Linux/`notify-send`) cuando el agente completa un turno.                                                            |
+| **session-breakdown** | `session-breakdown.ts` | Historial de sesiones (tokens/coste/mensajes) en 7/30/90 días vía `/session-breakdown`.                                                           |
+| **todos**             | `todos.ts`             | Gestor de TODOs en Markdown (`/todos`). Listar, crear, asignar y actualizar tareas con bloqueo de archivos y TUI.                                 |
+| **uv**                | `uv.ts`                | Intercepta comandos Python (`pip`, `poetry`) y redirige a `uv` para gestión de paquetes más rápida.                                               |
+
+### Externas (instaladas como paquetes npm/git)
+
+| Paquete                          | Fuente           | ¿Qué hace?                                                                                                                                                                                          |
+| -------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **pi-powerline-footer**          | npm              | Barra de estado estilo Powerline en el TUI. Muestra logo, modelo, atajos, conteo de skills/extensiones, uso de contexto (alertas al 70%/90%), sesiones recientes, indicador de stash y temas /vibe. |
+| **@aliou/pi-guardrails**         | npm              | Seguridad: protege archivos sensibles (`.env`, claves), bloquea comandos peligrosos, controla acceso a rutas fuera del workspace.                                                                   |
+| **@tmustier/pi-tab-status**      | npm              | Indicadores en pestañas del terminal para sesiones paralelas: ✅ done, 🚧 stuck, 🛑 timed out.                                                                                                      |
+| **@tmustier/pi-code-actions**    | npm              | Selecciona bloques de código de mensajes del asistente para copiar, insertar o ejecutar con `/code`.                                                                                                |
+| **chrome-cdp-skill**             | git (pasky)      | Habilidad para inspeccionar/depurar Chrome local vía CDP (solo con aprobación explícita).                                                                                                           |
+| **pi-mcp-adapter**               | git (nicobailon) | Adaptador MCP eficiente (~200 tokens). Descubre y usa servidores MCP bajo demanda, arranque lazy, integración con subagentes y UIs interactivas.                                                    |
+| **@aliou/pi-processes**          | npm              | Gestión de procesos en segundo plano. Lanza servidores, test watchers, builds sin bloquear la conversación.                                                                                         |
+| **pi-prompt-template-model**     | npm              | Añade frontmatter de modelo/skill/thinking a prompt templates. Cada template es un modo de agente autocontenido.                                                                                    |
+| **pi-interactive-shell**         | npm              | Ejecuta CLIs interactivos (vim, psql, ssh, npm dev) en overlay TUI. Modos: interactive, hands-free, dispatch, monitor.                                                                              |
+| **@aliou/pi-linkup**             | npm              | Búsqueda web y extracción de contenido: `linkup_web_search`, `linkup_web_answer`, `linkup_web_fetch`.                                                                                               |
+| **pi-markdown-preview**          | git (omaclaren)  | Previsualiza respuestas y archivos Markdown/LaTeX/código/diff en terminal, navegador o PDF. Con matemáticas, Mermaid y temas.                                                                       |
+| **pi-token-burden**              | git (Whamp)      | Desglose del presupuesto de tokens del system prompt vía `/token-burden`.                                                                                                                           |
+| **pi-smart-sessions**            | git (HazAT)      | Selector compacto de sesiones (`/sessions`) con navegación por flechas.                                                                                                                             |
+| **pi-head**                      | git (omerxx)     | Resumen de una línea al reenfocar el terminal tras inactividad. Ayuda con múltiples sesiones.                                                                                                       |
+| **pi-add-dir**                   | git (itisbryan)  | Añade un directorio externo a la sesión cargando su AGENTS.md y skills.                                                                                                                             |
+| **pi-subagents**                 | npm              | Delegación a subagentes especializados (scout, worker, reviewer, planner, oracle). Cadenas, paralelo, foreground/background.                                                                        |
+| **pi-lens**                      | npm              | Feedback de código en tiempo real: LSP (diagnósticos, definiciones, referencias), linters, formatters, type-checking, ast-grep.                                                                     |
+| **pi-schedule-prompt**           | npm              | Programa prompts recurrentes con sintaxis cron. Comando `/schedule-prompt`.                                                                                                                         |
+| **pi-ask-user**                  | npm              | Herramienta `ask_user` para que el agente haga preguntas estructuradas durante la ejecución con overlay interactivo.                                                                                |
+| **@ogulcancelik/pi-sketch**      | npm              | Dibujo y bocetos desde Pi en el terminal.                                                                                                                                                           |
+| **@matheusbbarni/pi-stitch-mcp** | npm              | Integración con Stitch MCP: estado de conexión, listar/leer recursos, prompts de servidores MCP.                                                                                                    |
+| **pi-inspect**                   | npm              | Inspecciona qué tiene cargado Pi (prompts, directrices, tools, skills) sin rediscovery.                                                                                                             |
+| **pi-slopchop**                  | npm              | Revisión y anotación de código nativa en terminal. Anotaciones FIX/DISCUSS sobre el diff. Comando `/slopchop`.                                                                                      |
 
 ## Themes
 

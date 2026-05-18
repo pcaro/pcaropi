@@ -29,12 +29,15 @@
     "npm:pi-subagents",
     "npm:pi-lens",
     "npm:pi-schedule-prompt",
-    "npm:pi-ask-user"
+    "npm:pi-ask-user",
+    "npm:@ogulcancelik/pi-sketch",
+    "npm:@matheusbbarni/pi-stitch-mcp",
+    "npm:pi-inspect"
   ],
-  "lastChangelogVersion": "0.74.0",
-  "defaultProvider": "opencode",
-  "defaultModel": "qwen3.6-plus",
-  "defaultThinkingLevel": "medium",
+  "lastChangelogVersion": "0.75.3",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "deepseek-v4-flash",
+  "defaultThinkingLevel": "high",
   "hideThinkingBlock": true,
   "pi-screenshots": {
     "dir": "~/Pictures/Capturas de pantalla/"
