@@ -23,6 +23,11 @@ pi-extensions/*/node_modules/
 pi-extensions/node_modules/
 skills/**/node_modules
 
+# Generated artifacts
+.pi-lens/
+inspect/
+npm/
+
 # OS files
 .DS_Store
 Thumbs.db

@@ -36,7 +36,7 @@
   ],
   "lastChangelogVersion": "0.75.3",
   "defaultProvider": "opencode-go",
-  "defaultModel": "deepseek-v4-flash",
+  "defaultModel": "deepseek-v4-pro",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": true,
   "pi-screenshots": {

@@ -35,25 +35,46 @@ cd ~/.pi/agent && git pull
 
 Custom skills located in `skills/`:
 
-| Skill                                   | When to use                                                    | Tools            | Scripts/Files                                             |
-| --------------------------------------- | -------------------------------------------------------------- | ---------------- | --------------------------------------------------------- |
-| **[show-me](skills/show-me/README.md)** | Prove that code works — run demos, record terminal sessions    | Bash, Read       | `scripts/kitty_screenshot.sh`, `scripts/wait_for_text.sh` |
-| **summarize**                           | Convert URL/PDF/DOCX to Markdown, summarize content            | Bash, Read       | `to-markdown.mjs`                                         |
-| **google-workspace**                    | Access Drive, Docs, Calendar, Gmail, Sheets without MCP        | Bash             | `scripts/auth.js`, `scripts/workspace.js`                 |
-| **github**                              | Interact with GitHub — PRs, issues, CI runs, API queries       | Bash             | `gh` CLI                                                  |
-| **web-browser**                         | Interact with web pages — click, fill forms, navigate          | Bash             | `scripts/*.js` (CDP)                                      |
-| **cli-tools**                           | Reference for selecting tools — jq, fx, gh, sqlite-utils, etc. | (reference only) | —                                                         |
-| **update-changelog**                    | Update CHANGELOG.md before releases                            | (reference only) | —                                                         |
-| **brainstorming-requirement**           | Refine ideas into designs through structured questioning       | ask_user, write  | —                                                         |
+| Skill                                                     | When to use                                                                                                   | Tools / Scripts                                                                        |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **add-mcp-server**                                        | Añadir servidores MCP (globales o por proyecto)                                                               | `~/.pi/agent/mcp.json`                                                                |
+| **brainstorm**                                            | Brainstorming estructurado: investigar → clarificar → explorar → validar → planear → crear TODOs              | ask_user, write                                                                        |
+| **cli-tools**                                             | Referencia rápida de CLI: jq, fx, deep, sqlite-utils, gh, gw, httpie, shot-scraper, bq, snow, stern           | (referencia)                                                                           |
+| **code-simplifier**                                       | Simplificar y refinar código para claridad y mantenibilidad                                                   | read, edit                                                                             |
+| **commit**                                                | Crear commits pulidos con formato Conventional Commits (usar **siempre** antes de commitear)                  | git                                                                                    |
+| **crit**                                                  | Trabajar con crit CLI: comentarios, revisiones, push/pull de PRs                                              | crit CLI                                                                               |
+| **frontend-design**                                       | Crear interfaces frontend de calidad de producción (componentes web, páginas, apps)                           | read, write, bash                                                                      |
+| **github**                                                | Interactuar con GitHub — PRs, issues, CI, API                                                                 | `gh` CLI                                                                               |
+| **google-workspace**                                      | Acceder a Drive, Docs, Calendar, Gmail, Sheets, Slides, Chat, People sin MCP                                  | `scripts/auth.js`, `scripts/workspace.js`                                              |
+| **herdr**                                                 | Controlar herdr desde dentro: workspaces, tabs, paneles, spawn agentes (cuando HERDR_ENV=1)                   | herdr CLI, unix socket                                                                 |
+| **learn-codebase**                                        | Descubrir convenciones del proyecto y escanear riesgos de seguridad al empezar en un código nuevo             | grep, find, read                                                                       |
+| **presentation-creator**                                  | Crear presentaciones con datos usando React, Vite, Recharts y branding Sentry                                 | bash, write, npm                                                                       |
+| **preview-markdown-browser**                              | Renderizar la última respuesta (o un .md) como HTML en el navegador                                           | bash                                                                                   |
+| **review-rubric**                                         | Guía y rúbrica de calidad para revisiones de código (usada por /review y el subagente reviewer)               | (referencia)                                                                           |
+| **ruff**                                                  | Linter y formateador de Python (usar **siempre** con código Python)                                           | `ruff` CLI                                                                             |
+| **session-reader**                                        | Leer y analizar archivos .jsonl de sesiones de pi                                                              | bash, read                                                                             |
+| **[show-me](skills/show-me/README.md)**                   | Demostrar que el código funciona — grabar sesiones demo en Kitty                                              | `scripts/kitty_screenshot.sh`, `scripts/wait_for_text.sh`                              |
+| **summarize**                                             | Convertir URL/PDF/DOCX/PPTX a Markdown con markitdown                                                         | `to-markdown.mjs`                                                                      |
+| **ty**                                                    | Type checker de Python ultrarrápido (pyright) — usar **siempre** con código Python                            | `ty` CLI                                                                               |
+| **update-changelog**                                      | Actualizar CHANGELOG.md entre releases                                                                        | (referencia)                                                                           |
+| **uv**                                                    | Gestor de paquetes Python (usar **siempre** en lugar de pip/poetry con código Python)                         | `uv` CLI                                                                               |
+| **web-browser**                                           | Interactuar con páginas web (click, formularios, navegación) vía Chrome headless CDP                          | `scripts/*.js` (CDP)                                                                   |
 
 #### Quick Reference
 
-- **Recording demos**: Use `show-me` to prove code works
-- **Data extraction**: Use `summarize` for docs, `cli-tools` for JSON
-- **GitHub ops**: Use `github` for PRs, issues, CI
-- **Web automation**: Use `web-browser` for browser interaction
-- **Google Workspace**: Use `google-workspace` for Drive/Docs/Calendar
-- **Requirements**: Use `brainstorming-requirement` before coding
+- **Python code**: Usar `uv` + `ruff` + `ty` siempre (gestor, linter, type checker)
+- **Commits**: Usar `commit` siempre antes de cualquier commit
+- **Demos**: Usar `show-me` para probar que el código funciona
+- **Extracción de datos**: Usar `summarize` para docs, `cli-tools` para JSON
+- **GitHub**: Usar `github` para PRs, issues, CI
+- **Web**: Usar `web-browser` para automatización de navegador
+- **Google Workspace**: Usar `google-workspace` para Drive/Docs/Calendar
+- **Planificación**: Usar `brainstorm` antes de cambios grandes
+- **Frontend**: Usar `frontend-design` para componentes web/interfaces
+- **MCP**: Usar `add-mcp-server` para configurar servidores MCP
+- **Código nuevo**: Usar `learn-codebase` para explorar proyectos desconocidos
+- **Refactor**: Usar `code-simplifier` para limpiar y simplificar código
+- **Presentaciones**: Usar `presentation-creator` para slides con datos
 
 ## Extensions
 
