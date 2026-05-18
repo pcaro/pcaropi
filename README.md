@@ -80,62 +80,121 @@ Custom skills located in `skills/`:
 
 ### Internas (auto-descubiertas de `extensions/`)
 
-Todas las extensiones en `~/.pi/agent/extensions/` se cargan automáticamente (salvo `uv-with-cwd.ts` que está excluida explícitamente en settings):
+Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-with-cwd.ts` que está excluida explícitamente en settings):
 
-| Extensión               | Comando(s)       | ¿Qué hace?                                                                                                                                |
-| ----------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **answer**              | `/answer`        | Q&A interactivo. Extrae preguntas de mensajes del asistente y las responde una por una vía UI nativa (`Ctrl+.`). Fallback cuando el modelo olvidó usar `ask_user`. |
-| **branch**              | `/branch`        | Resume la conversación actual y arranca una nueva rama (hija) con el contexto comprimido.                                                  |
-|                         | `/compress`      | Resume toda la sesión y crea una sesión nueva con el resumen (la original se preserva).                                                    |
-|                         | `/branches`      | Muestra el árbol de resúmenes de las ramas de la sesión actual con tamaño y preview.                                                       |
-| **ci-index**            | `/ci`            | Muestra el Coding Index (CI) de cualquier modelo basado en benchmarks de Artificial Analysis.                                              |
-|                         | `/ci-top`        | Lista los mejores modelos de código por puntuación CI.                                                                                    |
-| **context**             | `/context`       | Muestra una vista general del contexto cargado: tokens, skills, AGENTS.md, extensiones, prompts, archivos de sesión.                      |
-| **cost**                | `/cost [días]`   | Resumen de coste de API (por defecto 7 días) extrayendo datos de los archivos .jsonl de sesión.                                           |
-| **execute-command**     | *(tool interno)* | Registra la herramienta `execute_command` para que el agente pueda auto-invocar comandos slash (`/answer`, `/reload`, etc.) o enviarse mensajes a sí mismo. |
-| **files**               | `/files`         | Explorador de archivos interactivo con estado git, referencias de sesión, vista rápida y reveal en Finder.                                |
-| **get-current-time**    | *(tool interno)* | Registra la herramienta `get_current_time` para que el agente pueda consultar la fecha/hora actual.                                       |
-| **guardrails.json**     | *(config)*       | Políticas de protección de archivos para `@aliou/pi-guardrails`: bloquea `.env`, claves privadas, etc.                                    |
-| **handoff**             | `/handoff`       | Transfiere contexto a una nueva sesión enfocada. El LLM extrae decisiones, archivos tocados y hallazgos clave, y genera un prompt inicial. |
-| **herdr-agent-state**   | *(automático)*   | Reporta el estado del agente pi (working/blocked/idle) a herdr vía unix socket para seguimiento en pane.                                  |
-| **hooks**               | *(wiring)*       | Punto de entrada único que registra los hooks de `terminal-title`, `session-name` y `system-prompt`.                                      |
-| **notify**              | *(automático)*   | Envía notificaciones de escritorio (`notify-send`) cuando el agente completa un turno.                                                     |
-| **review**              | `/review`        | Revisión de código interactiva. Soporta: PRs de GitHub, ramas, commits, cambios sin stage, o instrucciones personalizadas.                |
-| **session-breakdown**   | `/session-breakdown` | Desglose interactivo del historial de sesiones (7/30/90 días): sesiones, mensajes, tokens y coste por modelo, con gráfico inline.     |
-| **session-name**        | *(automático)*   | Genera automáticamente nombres descriptivos de sesión usando IA tras el primer turno del asistente.                                        |
-| **system-prompt**       | *(automático)*   | Añade guías de uso de herramientas al system prompt antes de cada turno del agente.                                                       |
-| **terminal-title**      | *(automático)*   | Actualiza el título de la ventana del terminal con el proyecto/directorio actual.                                                         |
-| **todos**               | `/todos`         | Gestor de TODOs en Markdown con respaldo en archivos. Listar, crear, asignar (`claim`), actualizar y cerrar tareas con bloqueo y TUI.     |
-| **usage**               | `/usage`         | Dashboard de estadísticas de uso. Cicla Hoy / Esta Semana / Todo el tiempo. Muestra coste, tokens y mensajes por provider y modelo.       |
-| **watchdog**            | `/watchdog`      | Monitor de sesión. Usa un modelo juez (Haiku) para detectar si el agente está atascado, en bucle o necesita intervención. Puede nudear o abortar. |
+#### Sesión y contexto
+
+| Extensión | Comando(s) | ¿Qué hace? |
+| --------- | ---------- | ---------- |
+| [**context**](extensions/context.ts) | `/context` | Muestra el contexto cargado: tokens, skills, AGENTS.md, extensiones, prompts y archivos de sesión. |
+| [**session-name**](extensions/session-name.ts) | _(automático)_ | Genera nombres descriptivos de sesión con IA tras el primer turno del asistente. |
+| [**session-breakdown**](extensions/session-breakdown.ts) | `/session-breakdown` | Desglose interactivo del historial (7/30/90 días): sesiones, mensajes, tokens y coste por modelo con gráfico inline. |
+| [**branch**](extensions/branch.ts) | `/branch` | Resume la conversación y arranca una nueva rama hija con el contexto comprimido. |
+| | `/compress` | Resume toda la sesión y crea una sesión nueva (la original se preserva). |
+| | `/branches` | Muestra el árbol de resúmenes de ramas con tamaño y preview. |
+| [**handoff**](extensions/handoff.ts) | `/handoff` | Transfiere contexto a una nueva sesión: el LLM extrae decisiones, archivos y hallazgos clave para generar un prompt inicial. |
+| [**answer**](extensions/answer.ts) | `/answer` | Q&A interactivo. Extrae preguntas del mensaje del asistente y las responde una por una vía UI nativa (`Ctrl+.`). |
+
+#### Código y archivos
+
+| Extensión | Comando(s) | ¿Qué hace? |
+| --------- | ---------- | ---------- |
+| [**files**](extensions/files.ts) | `/files` | Explorador de archivos interactivo con estado git, referencias de sesión, vista rápida y reveal en Finder. |
+| [**review**](extensions/review.ts) | `/review` | Revisión de código interactiva. Soporta PRs de GitHub, ramas, commits, cambios sin stage e instrucciones personalizadas. |
+| [**todos**](extensions/todos.ts) | `/todos` | Gestor de TODOs en Markdown con respaldo en archivos. Crear, asignar (`claim`), actualizar y cerrar tareas con bloqueo y TUI. |
+| [**watchdog**](extensions/watchdog.ts) | `/watchdog` | Monitor de sesión. Usa Haiku como juez para detectar si el agente está atascado, en bucle o necesita intervención. |
+
+#### Terminal y escritorio
+
+| Extensión | Comando(s) | ¿Qué hace? |
+| --------- | ---------- | ---------- |
+| [**terminal-title**](extensions/terminal-title.ts) | _(automático)_ | Actualiza el título de la ventana del terminal con el proyecto/directorio actual. |
+| [**notify**](extensions/notify.ts) | _(automático)_ | Notificaciones de escritorio (`notify-send`) cuando el agente completa un turno. |
+| [**herdr-agent-state**](extensions/herdr-agent-state.ts) | _(automático)_ | Reporta el estado de pi (working/blocked/idle) a herdr vía unix socket para seguimiento en pane. |
+
+#### Sistema del agente
+
+| Extensión | Comando(s) | ¿Qué hace? |
+| --------- | ---------- | ---------- |
+| [**execute-command**](extensions/execute-command.ts) | _(tool interno)_ | Registra `execute_command` para que el agente se auto-invoque comandos slash (`/answer`, `/reload`, etc.) o se envíe mensajes. |
+| [**get-current-time**](extensions/get-current-time.ts) | _(tool interno)_ | Registra `get_current_time` para que el agente consulte la fecha/hora actual. |
+| [**system-prompt**](extensions/system-prompt.ts) | _(automático)_ | Añade guías de uso de herramientas al system prompt antes de cada turno del agente. |
+| [**hooks**](extensions/hooks.ts) | _(wiring)_ | Punto de entrada único que registra los hooks de `terminal-title`, `session-name` y `system-prompt`. |
+
+#### Métricas
+
+| Extensión | Comando(s) | ¿Qué hace? |
+| --------- | ---------- | ---------- |
+| [**cost**](extensions/cost.ts) | `/cost [días]` | Resumen de coste de API (por defecto 7 días) extrayendo datos de los archivos .jsonl de sesión. |
+| [**usage**](extensions/usage/) | `/usage` | Dashboard de estadísticas de uso. Cicla Hoy / Esta Semana / Todo el tiempo. Coste, tokens y mensajes por provider y modelo. |
+| [**ci-index**](extensions/ci-index.ts) | `/ci` | Muestra el Coding Index (CI) de cualquier modelo según benchmarks de Artificial Analysis. |
+| | `/ci-top` | Lista los mejores modelos de código por puntuación CI. |
+
+#### Seguridad
+
+| Extensión | Comando(s) | ¿Qué hace? |
+| --------- | ---------- | ---------- |
+| [**guardrails.json**](extensions/guardrails.json) | _(config)_ | Políticas de protección de archivos para `@aliou/pi-guardrails`: bloquea `.env`, claves privadas, etc. |
 
 ### Externas (instaladas como paquetes npm/git)
 
-| Paquete                          | Fuente           | ¿Qué hace?                                                                                                                                                                                          |
-| -------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **pi-powerline-footer**          | npm              | Barra de estado estilo Powerline en el TUI. Muestra logo, modelo, atajos, conteo de skills/extensiones, uso de contexto (alertas al 70%/90%), sesiones recientes, indicador de stash y temas /vibe. |
-| **@aliou/pi-guardrails**         | npm              | Seguridad: protege archivos sensibles (`.env`, claves), bloquea comandos peligrosos, controla acceso a rutas fuera del workspace.                                                                   |
-| **@tmustier/pi-tab-status**      | npm              | Indicadores en pestañas del terminal para sesiones paralelas: ✅ done, 🚧 stuck, 🛑 timed out.                                                                                                      |
-| **@tmustier/pi-code-actions**    | npm              | Selecciona bloques de código de mensajes del asistente para copiar, insertar o ejecutar con `/code`.                                                                                                |
-| **chrome-cdp-skill**             | git (pasky)      | Habilidad para inspeccionar/depurar Chrome local vía CDP (solo con aprobación explícita).                                                                                                           |
-| **pi-mcp-adapter**               | git (nicobailon) | Adaptador MCP eficiente (~200 tokens). Descubre y usa servidores MCP bajo demanda, arranque lazy, integración con subagentes y UIs interactivas.                                                    |
-| **@aliou/pi-processes**          | npm              | Gestión de procesos en segundo plano. Lanza servidores, test watchers, builds sin bloquear la conversación.                                                                                         |
-| **pi-prompt-template-model**     | npm              | Añade frontmatter de modelo/skill/thinking a prompt templates. Cada template es un modo de agente autocontenido.                                                                                    |
-| **pi-interactive-shell**         | npm              | Ejecuta CLIs interactivos (vim, psql, ssh, npm dev) en overlay TUI. Modos: interactive, hands-free, dispatch, monitor.                                                                              |
-| **@aliou/pi-linkup**             | npm              | Búsqueda web y extracción de contenido: `linkup_web_search`, `linkup_web_answer`, `linkup_web_fetch`.                                                                                               |
-| **pi-markdown-preview**          | git (omaclaren)  | Previsualiza respuestas y archivos Markdown/LaTeX/código/diff en terminal, navegador o PDF. Con matemáticas, Mermaid y temas.                                                                       |
-| **pi-token-burden**              | git (Whamp)      | Desglose del presupuesto de tokens del system prompt vía `/token-burden`.                                                                                                                           |
-| **pi-smart-sessions**            | git (HazAT)      | Selector compacto de sesiones (`/sessions`) con navegación por flechas.                                                                                                                             |
-| **pi-head**                      | git (omerxx)     | Resumen de una línea al reenfocar el terminal tras inactividad. Ayuda con múltiples sesiones.                                                                                                       |
-| **pi-add-dir**                   | git (itisbryan)  | Añade un directorio externo a la sesión cargando su AGENTS.md y skills.                                                                                                                             |
-| **pi-subagents**                 | npm              | Delegación a subagentes especializados (scout, worker, reviewer, planner, oracle). Cadenas, paralelo, foreground/background.                                                                        |
-| **pi-lens**                      | npm              | Feedback de código en tiempo real: LSP (diagnósticos, definiciones, referencias), linters, formatters, type-checking, ast-grep.                                                                     |
-| **pi-schedule-prompt**           | npm              | Programa prompts recurrentes con sintaxis cron. Comando `/schedule-prompt`.                                                                                                                         |
-| **pi-ask-user**                  | npm              | Herramienta `ask_user` para que el agente haga preguntas estructuradas durante la ejecución con overlay interactivo.                                                                                |
-| **@ogulcancelik/pi-sketch**      | npm              | Dibujo y bocetos desde Pi en el terminal.                                                                                                                                                           |
-| **@matheusbbarni/pi-stitch-mcp** | npm              | Integración con Stitch MCP: estado de conexión, listar/leer recursos, prompts de servidores MCP.                                                                                                    |
-| **pi-inspect**                   | npm              | Inspecciona qué tiene cargado Pi (prompts, directrices, tools, skills) sin rediscovery.                                                                                                             |
-| **pi-slopchop**                  | npm              | Revisión y anotación de código nativa en terminal. Anotaciones FIX/DISCUSS sobre el diff. Comando `/slopchop`.                                                                                      |
+#### Interfaz de usuario
+
+| Paquete | Repo | ¿Qué hace? |
+| ------- | ---- | ---------- |
+| [**pi-powerline-footer**](https://github.com/nicobailon/pi-powerline-footer) | GitHub (nicobailon) | Barra de estado Powerline en el TUI. Logo, modelo, atajos, skills/extensiones cargadas, contexto (alertas 70%/90%), sesiones recientes, stash y temas /vibe. |
+| [**pi-markdown-preview**](https://github.com/omaclaren/pi-markdown-preview) | GitHub (omaclaren) | Previsualiza respuestas y archivos Markdown/LaTeX/código/diff en terminal (PNG), navegador o PDF. Con matemáticas, Mermaid y temas. |
+| [**@tmustier/pi-tab-status**](https://github.com/tmustier/pi-extensions) | GitHub (tmustier) | Indicadores en pestañas del terminal para sesiones paralelas: ✅ done, 🚧 stuck, 🛑 timed out. |
+
+#### Delegación y agentes
+
+| Paquete | Repo | ¿Qué hace? |
+| ------- | ---- | ---------- |
+| [**pi-subagents**](https://github.com/nicobailon/pi-subagents) | GitHub (nicobailon) | Delegación a subagentes (scout, worker, reviewer, planner, oracle). Cadenas, paralelo, foreground/background. |
+| [**pi-interactive-shell**](https://github.com/nicobailon/pi-interactive-shell) | GitHub (nicobailon) | Ejecuta CLIs interactivos (vim, psql, ssh, npm dev) en overlay TUI. Modos: interactive, hands-free, dispatch, monitor. |
+
+#### Seguridad y control
+
+| Paquete | Repo | ¿Qué hace? |
+| ------- | ---- | ---------- |
+| [**@aliou/pi-guardrails**](https://github.com/aliou/pi-guardrails) | GitHub (aliou) | Protege archivos sensibles (`.env`, claves), bloquea comandos peligrosos, controla acceso a rutas fuera del workspace. |
+| [**pi-inspect**](https://www.npmjs.com/package/pi-inspect) | npm | Inspecciona qué tiene cargado Pi (prompts, directrices, tools, skills) sin rediscovery. |
+
+#### MCP y conectividad externa
+
+| Paquete | Repo | ¿Qué hace? |
+| ------- | ---- | ---------- |
+| [**pi-mcp-adapter**](https://github.com/nicobailon/pi-mcp-adapter) | GitHub (nicobailon) | Adaptador MCP (~200 tokens). Descubre servidores MCP bajo demanda, arranque lazy, UIs interactivas. |
+| [**@matheusbbarni/pi-stitch-mcp**](https://www.npmjs.com/package/@matheusbbarni/pi-stitch-mcp) | npm | Integración con Stitch MCP: estado de conexión, listar/leer recursos y prompts de servidores MCP. |
+| [**@aliou/pi-linkup**](https://github.com/aliou/pi-linkup) | GitHub (aliou) | Búsqueda web y extracción de contenido: `linkup_web_search`, `linkup_web_answer`, `linkup_web_fetch`. |
+| [**chrome-cdp-skill**](https://github.com/pasky/chrome-cdp-skill) | GitHub (pasky) | Inspeccionar/depurar Chrome local vía CDP (solo con aprobación explícita). |
+| [**pi-add-dir**](https://github.com/itisbryan/pi-add-dir) | GitHub (itisbryan) | Añade directorios externos a la sesión cargando su AGENTS.md y skills. |
+
+#### Procesos y automatización
+
+| Paquete | Repo | ¿Qué hace? |
+| ------- | ---- | ---------- |
+| [**@aliou/pi-processes**](https://github.com/aliou/pi-processes) | GitHub (aliou) | Gestión de procesos en segundo plano. Lanza servidores, test watchers y builds sin bloquear la conversación. |
+| [**pi-schedule-prompt**](https://github.com/tintinweb/pi-schedule-prompt) | GitHub (tintinweb) | Programa prompts recurrentes con sintaxis cron. Comando `/schedule-prompt`. |
+| [**pi-prompt-template-model**](https://github.com/nicobailon/pi-prompt-template-model) | GitHub (nicobailon) | Añade frontmatter de modelo/skill/thinking a prompt templates. Cada template es un modo de agente autocontenido. |
+
+#### Análisis de código
+
+| Paquete | Repo | ¿Qué hace? |
+| ------- | ---- | ---------- |
+| [**pi-lens**](https://github.com/apmantza/pi-lens) | GitHub (apmantza) | Feedback de código en tiempo real: LSP, linters, formatters, type-checking, ast-grep. |
+| [**pi-token-burden**](https://github.com/Whamp/pi-token-burden) | GitHub (Whamp) | Desglose del presupuesto de tokens del system prompt vía `/token-burden`. |
+| [**pi-slopchop**](https://github.com/robzolkos/pi-slopchop) | GitHub (robzolkos) | Revisión y anotación de código nativa en terminal. Anotaciones FIX/DISCUSS sobre el diff. Comando `/slopchop`. |
+| [**@tmustier/pi-code-actions**](https://github.com/tmustier/pi-extensions) | GitHub (tmustier) | Selecciona bloques de código de mensajes del asistente para copiar, insertar o ejecutar con `/code`. |
+
+#### Utilidades
+
+| Paquete | Repo | ¿Qué hace? |
+| ------- | ---- | ---------- |
+| [**pi-head**](https://github.com/omerxx/pi-head) | GitHub (omerxx) | Resumen de una línea al reenfocar el terminal tras inactividad. Ayuda con múltiples sesiones. |
+| [**pi-smart-sessions**](https://github.com/HazAT/pi-smart-sessions) | GitHub (HazAT) | Selector compacto de sesiones (`/sessions`) con navegación por flechas. |
+| [**pi-ask-user**](https://github.com/nicobailon/pi-ask-user) | GitHub (nicobailon) | Herramienta `ask_user` para preguntas estructuradas al agente con overlay interactivo, opciones múltiples y entrada libre. |
+| [**@ogulcancelik/pi-sketch**](https://github.com/ogulcancelik/pi-extensions) | GitHub (ogulcancelik) | Dibujo y bocetos desde Pi en el terminal. |
 
 ## Themes
 
