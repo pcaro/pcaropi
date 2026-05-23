@@ -134,6 +134,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 
 | Extensión                                         | Comando(s) | ¿Qué hace?                                                                                             |
 | ------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------ |
+| [**dirty-repo-guard**](extensions/dirty-repo-guard/index.ts) | _(automático)_ | Bloquea cambios de sesión cuando hay cambios sin commit en el repo. Pregunta antes de hacer switch/fork con el working directory sucio. |
 | [**guardrails.json**](extensions/guardrails.json) | _(config)_ | Políticas de protección de archivos para `@aliou/pi-guardrails`: bloquea `.env`, claves privadas, etc. |
 
 ### Externas (instaladas como paquetes npm/git)
