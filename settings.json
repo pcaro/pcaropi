@@ -1,10 +1,25 @@
 {
   "packages": [
-    "npm:pi-powerline-footer",
+    {
+      "source": "npm:pi-powerline-footer",
+      "extensions": [
+        "+index.ts"
+      ]
+    },
     "npm:@aliou/pi-guardrails",
-    "npm:@tmustier/pi-tab-status",
+    {
+      "source": "npm:@tmustier/pi-tab-status",
+      "extensions": [
+        "-tab-status.ts"
+      ]
+    },
     "npm:@tmustier/pi-code-actions",
-    "git:github.com/pasky/chrome-cdp-skill@v1.0.1",
+    {
+      "source": "git:github.com/pasky/chrome-cdp-skill@v1.0.1",
+      "skills": [
+        "-skills/chrome-cdp/SKILL.md"
+      ]
+    },
     {
       "source": "git:github.com/nicobailon/pi-mcp-adapter",
       "extensions": [
@@ -15,8 +30,18 @@
     "npm:pi-prompt-template-model",
     "npm:pi-interactive-shell",
     "npm:@aliou/pi-linkup",
-    "https://github.com/omaclaren/pi-markdown-preview",
-    "git:github.com/Whamp/pi-token-burden",
+    {
+      "source": "https://github.com/omaclaren/pi-markdown-preview",
+      "extensions": [
+        "-index.ts"
+      ]
+    },
+    {
+      "source": "git:github.com/Whamp/pi-token-burden",
+      "extensions": [
+        "-src/index.ts"
+      ]
+    },
     {
       "source": "git:github.com/HazAT/pi-smart-sessions",
       "extensions": [
@@ -30,13 +55,27 @@
     "npm:pi-lens",
     "npm:pi-schedule-prompt",
     "npm:pi-ask-user",
-    "npm:@ogulcancelik/pi-sketch",
-    "npm:@matheusbbarni/pi-stitch-mcp",
-    "npm:pi-inspect"
+    {
+      "source": "npm:@ogulcancelik/pi-sketch",
+      "extensions": [
+        "-extensions/index.ts"
+      ]
+    },
+    {
+      "source": "npm:@matheusbbarni/pi-stitch-mcp",
+      "extensions": [
+        "-index.ts"
+      ]
+    },
+    "npm:pi-inspect",
+    "npm:pi-slim",
+    "npm:pi-ralplan",
+    "https://github.com/monotykamary/pi-invisible-continue",
+    "npm:pi-intercom"
   ],
-  "lastChangelogVersion": "0.75.3",
-  "defaultProvider": "opencode-go",
-  "defaultModel": "deepseek-v4-pro",
+  "lastChangelogVersion": "0.75.4",
+  "defaultProvider": "opencode",
+  "defaultModel": "kimi-k2.6",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": true,
   "pi-screenshots": {
@@ -81,5 +120,9 @@
   "enableInstallTelemetry": false,
   "extensions": [
     "-extensions/uv-with-cwd.ts"
+  ],
+  "workingVibeModel": "opencode-go/deepseek-v4-flash",
+  "skills": [
+    "-../../.agents/skills/pp-scrape-creators/SKILL.md"
   ]
 }
