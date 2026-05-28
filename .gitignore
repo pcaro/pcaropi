@@ -13,6 +13,7 @@ powerline-footer/
 
 # Pi runtime files (created when this repo is ~/.pi/agent/)
 git/
+intercom/
 mcp-cache.json
 mcp-npx-cache.json
 run-history.jsonl
