@@ -43,6 +43,7 @@ Selection rules:
 - do not hard-code model ladders in prompts; provider support, cost, quota, speed, and quality change
 - avoid scarce or credit-limited providers when an enabled Codex/default model is suitable; use provider-specific models only when their capability is worth the cost or the user asks for them
 - when choosing among Codex models, prefer `openai-codex/gpt-5.4` as the normal default, `openai-codex/gpt-5.4-mini` for simple/cheap tasks, and reserve `openai-codex/gpt-5.5` for very important or high-stakes work
+- when the same model is available from multiple providers at equivalent capability/cost, prefer the `opencode-go` provider variant (e.g. `opencode-go/deepseek-v4-pro` over `opencode/deepseek-v4-pro`, `opencode-go/minimax-m2.7` over `opencode/minimax-m2.7`)
 
 Choose by capability, cost/quota/scarcity, latency, context window, tool needs, and whether independence rather than model difference is the value.
 
