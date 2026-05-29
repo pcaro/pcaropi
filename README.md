@@ -38,11 +38,13 @@ Custom skills located in `skills/`:
 | Skill                                   | When to use                                                                                         | Tools / Scripts                                           |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
 | **add-mcp-server**                      | Añadir servidores MCP (globales o por proyecto)                                                     | `~/.pi/agent/mcp.json`                                    |
+| **anti-ai-copy**                        | Editar textos para que suenen humanos, concretos y sin marcas de IA (hype verbs, abstracciones, transiciones sintéticas) | read, edit                                                |
 | **brainstorm**                          | Brainstorming estructurado: investigar → clarificar → explorar → validar → planear → crear TODOs    | ask_user, write                                           |
 | **cli-tools**                           | Referencia rápida de CLI: jq, fx, deep, sqlite-utils, gh, gw, httpie, shot-scraper, bq, snow, stern | (referencia)                                              |
 | **code-simplifier**                     | Simplificar y refinar código para claridad y mantenibilidad                                         | read, edit                                                |
 | **commit**                              | Crear commits pulidos con formato Conventional Commits (usar **siempre** antes de commitear)        | git                                                       |
 | **crit**                                | Trabajar con crit CLI: comentarios, revisiones, push/pull de PRs                                    | crit CLI                                                  |
+| **documentation-writing**                | Escribir docs de usuario: tutoriales, how-tos, referencias, READMEs, changelogs, benchmarks         | read, write                                               |
 | **frontend-design**                     | Crear interfaces frontend de calidad de producción (componentes web, páginas, apps)                 | read, write, bash                                         |
 | **github**                              | Interactuar con GitHub — PRs, issues, CI, API                                                       | `gh` CLI                                                  |
 | **google-workspace**                    | Acceder a Drive, Docs, Calendar, Gmail, Sheets, Slides, Chat, People sin MCP                        | `scripts/auth.js`, `scripts/workspace.js`                 |
@@ -53,11 +55,13 @@ Custom skills located in `skills/`:
 | **review-rubric**                       | Guía y rúbrica de calidad para revisiones de código (usada por /review y el subagente reviewer)     | (referencia)                                              |
 | **ruff**                                | Linter y formateador de Python (usar **siempre** con código Python)                                 | `ruff` CLI                                                |
 | **session-reader**                      | Leer y analizar archivos .jsonl de sesiones de pi                                                   | bash, read                                                |
+| **subagent-delegation**                  | Decidir cuándo delegar trabajo acotado a subagentes y qué modelo usar (downshift/upshift)          | `list_pi_models`, `subagent`, `TaskExecute`               |
 | **[show-me](skills/show-me/README.md)** | Demostrar que el código funciona — grabar sesiones demo en Kitty                                    | `scripts/kitty_screenshot.sh`, `scripts/wait_for_text.sh` |
 | **summarize**                           | Convertir URL/PDF/DOCX/PPTX a Markdown con markitdown                                               | `to-markdown.mjs`                                         |
 | **ty**                                  | Type checker de Python ultrarrápido (pyright) — usar **siempre** con código Python                  | `ty` CLI                                                  |
 | **update-changelog**                    | Actualizar CHANGELOG.md entre releases                                                              | (referencia)                                              |
 | **uv**                                  | Gestor de paquetes Python (usar **siempre** en lugar de pip/poetry con código Python)               | `uv` CLI                                                  |
+| **verification-before-completion**       | Exigir evidencia fresca antes de afirmar que algo está hecho (tests, build, lint, diff)             | git, bash                                                 |
 | **web-browser**                         | Interactuar con páginas web (click, formularios, navegación) vía Chrome headless CDP                | `scripts/*.js` (CDP)                                      |
 
 #### Quick Reference
