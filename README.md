@@ -94,6 +94,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 |                                                          | `/branches`          | Muestra el árbol de resúmenes de ramas con tamaño y preview.                                                                 |
 | [**handoff**](extensions/handoff.ts)                     | `/handoff`           | Transfiere contexto a una nueva sesión: el LLM extrae decisiones, archivos y hallazgos clave para generar un prompt inicial. |
 | [**answer**](extensions/answer.ts)                       | `/answer`            | Q&A interactivo. Extrae preguntas del mensaje del asistente y las responde una por una vía UI nativa (`Ctrl+.`).             |
+| [**structured-prompt**](extensions/structured-prompt/)   | `/prompt`<br>`Ctrl+Alt+P` | Formulario estructurado para componer prompts en secciones (Goal, Task, Context, Criteria, Constraints, Work order). Copiado de [n-r-w/pi-agent-suite](https://github.com/n-r-w/pi-agent-suite). |
 
 #### Código y archivos
 
