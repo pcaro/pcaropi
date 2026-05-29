@@ -154,6 +154,17 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | ------------------------------------------------------------------------------ | ------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | [**pi-subagents**](https://github.com/nicobailon/pi-subagents)                 | GitHub (nicobailon) | Delegación a subagentes (scout, worker, reviewer, planner, oracle). Cadenas, paralelo, foreground/background.          |
 | [**pi-interactive-shell**](https://github.com/nicobailon/pi-interactive-shell) | GitHub (nicobailon) | Ejecuta CLIs interactivos (vim, psql, ssh, npm dev) en overlay TUI. Modos: interactive, hands-free, dispatch, monitor. |
+| [**pi-intercom**](https://github.com/nicobailon/pi-intercom)                   | GitHub (nicobailon) | Mensajería 1:1 directa entre sesiones de Pi en la misma máquina. Herramienta `intercom` + overlay `/intercom`.          |
+| [**pi-ralplan**](https://www.npmjs.com/package/pi-ralplan)                     | npm                 | Planificación por consenso: spec → plan → ejecución con iteración Planner/Architect/Critic.                            |
+
+#### Sesión y prompts
+
+| Paquete                                                                                           | Repo                     | ¿Qué hace?                                                                                                                           |
+| ------------------------------------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| [**pi-invisible-continue**](https://github.com/monotykamary/pi-invisible-continue)                | GitHub (monotykamary)    | `/continue` reanuda el loop del agente sin que el LLM vea ningún prompt nuevo. Sin contaminación de contexto.                        |
+| [**pi-edit-session-in-place**](https://www.npmjs.com/package/pi-edit-session-in-place)            | npm                      | Re-edita o elimina mensajes anteriores del usuario en la rama actual de la sesión.                                                   |
+| [**pi-copy-user-message**](https://www.npmjs.com/package/pi-copy-user-message)                    | npm                      | `/copy-user` copia el mensaje más reciente del usuario al portapapeles.                                                              |
+| [**pi-slim**](https://www.npmjs.com/package/pi-slim)                                              | npm                      | Adelgaza el system prompt por defecto. La documentación de Pi pasa a ser opt-in vía `/pi`.                                            |
 
 #### Seguridad y control
 
@@ -189,6 +200,14 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | [**pi-slopchop**](https://github.com/robzolkos/pi-slopchop)                | GitHub (robzolkos) | Revisión y anotación de código nativa en terminal. Anotaciones FIX/DISCUSS sobre el diff. Comando `/slopchop`. |
 | [**@tmustier/pi-code-actions**](https://github.com/tmustier/pi-extensions) | GitHub (tmustier)  | Selecciona bloques de código de mensajes del asistente para copiar, insertar o ejecutar con `/code`.           |
 
+#### Sistema del agente
+
+| Paquete                                                                           | Repo                     | ¿Qué hace?                                                                                          |
+| --------------------------------------------------------------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------- |
+| [**pi-codex-goal**](https://www.npmjs.com/package/pi-codex-goal)                  | npm                      | Seguimiento de objetivos estilo Codex: `get_goal`, `create_goal`, `update_goal` para sesiones long-running. |
+| [**pi-cache-optimizer**](https://www.npmjs.com/package/pi-cache-optimizer)       | npm                      | Mejora las tasas de caché de prompts/KV con claves estables y estadísticas en el footer.            |
+| [**@badliveware/pi-model-catalog**](https://www.npmjs.com/package/@badliveware/pi-model-catalog) | npm | Expone el catálogo de modelos de Pi como herramienta para el agente (`list_pi_models`).              |
+
 #### Utilidades
 
 | Paquete                                                                      | Repo                  | ¿Qué hace?                                                                                                                 |
@@ -197,6 +216,8 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | [**pi-smart-sessions**](https://github.com/HazAT/pi-smart-sessions)          | GitHub (HazAT)        | Selector compacto de sesiones (`/sessions`) con navegación por flechas.                                                    |
 | [**pi-ask-user**](https://github.com/nicobailon/pi-ask-user)                 | GitHub (nicobailon)   | Herramienta `ask_user` para preguntas estructuradas al agente con overlay interactivo, opciones múltiples y entrada libre. |
 | [**@ogulcancelik/pi-sketch**](https://github.com/ogulcancelik/pi-extensions) | GitHub (ogulcancelik) | Dibujo y bocetos desde Pi en el terminal.                                                                                  |
+| [**@diegopetrucci/pi-librarian**](https://www.npmjs.com/package/@diegopetrucci/pi-librarian) | npm | Investigación en GitHub con caché local de repos. Búsqueda web con evidencias y citas de código.                            |
+| [**@badliveware/pi-pr-upstream-status**](https://www.npmjs.com/package/@badliveware/pi-pr-upstream-status) | npm | Muestra el estado del PR upstream de la rama actual (abierto, mergeado, cerrado).                                            |
 
 ## Themes
 

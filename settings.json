@@ -1,19 +1,25 @@
 {
+  "theme": "notte",
   "packages": [
     {
       "source": "npm:pi-powerline-footer",
       "extensions": [
-        "+index.ts"
+        "-index.ts"
       ]
     },
     "npm:@aliou/pi-guardrails",
     {
       "source": "npm:@tmustier/pi-tab-status",
       "extensions": [
-        "-tab-status.ts"
+        "+tab-status.ts"
       ]
     },
-    "npm:@tmustier/pi-code-actions",
+    {
+      "source": "npm:@tmustier/pi-code-actions",
+      "extensions": [
+        "-index.ts"
+      ]
+    },
     {
       "source": "git:github.com/pasky/chrome-cdp-skill@v1.0.1",
       "skills": [
@@ -39,7 +45,7 @@
     {
       "source": "git:github.com/Whamp/pi-token-burden",
       "extensions": [
-        "-src/index.ts"
+        "+src/index.ts"
       ]
     },
     {
@@ -48,11 +54,42 @@
         "+extensions/smart-sessions.ts"
       ]
     },
-    "npm:pi-slopchop",
+    {
+      "source": "npm:pi-slopchop",
+      "extensions": [
+        "-src/index.ts"
+      ]
+    },
     "git:github.com/omerxx/pi-head",
     "https://github.com/itisbryan/pi-add-dir",
-    "npm:pi-subagents",
-    "npm:pi-lens",
+    {
+      "source": "npm:pi-subagents",
+      "extensions": [
+        "+src/extension/index.ts"
+      ],
+      "skills": [
+        "+skills/pi-subagents/SKILL.md"
+      ],
+      "prompts": [
+        "+prompts/gather-context-and-clarify.md",
+        "+prompts/parallel-cleanup.md",
+        "+prompts/parallel-context-build.md",
+        "+prompts/parallel-handoff-plan.md",
+        "+prompts/parallel-research.md",
+        "+prompts/parallel-review.md",
+        "+prompts/review-loop.md"
+      ]
+    },
+    {
+      "source": "npm:pi-lens",
+      "extensions": [
+        "-index.ts"
+      ],
+      "skills": [
+        "-skills/ast-grep/SKILL.md",
+        "-skills/lsp-navigation/SKILL.md"
+      ]
+    },
     "npm:pi-schedule-prompt",
     "npm:pi-ask-user",
     {
@@ -69,20 +106,58 @@
     },
     "npm:pi-inspect",
     "npm:pi-slim",
-    "npm:pi-ralplan",
-    "https://github.com/monotykamary/pi-invisible-continue",
-    "npm:pi-intercom"
+    {
+      "source": "npm:pi-ralplan",
+      "extensions": [
+        "+pi/extensions/ralplan/index.ts"
+      ],
+      "skills": [
+        "+pi/skills/ralplan/SKILL.md"
+      ]
+    },
+    {
+      "source": "https://github.com/monotykamary/pi-invisible-continue",
+      "extensions": [
+        "-continue.ts"
+      ]
+    },
+    "npm:pi-intercom",
+    {
+      "source": "/home/pcaro/.pi/agent/extensions/structured-prompt",
+      "extensions": [
+        "+index.ts"
+      ]
+    },
+    {
+      "source": "npm:pi-cache-optimizer",
+      "extensions": [
+        "-index.ts"
+      ]
+    },
+    "npm:@diegopetrucci/pi-librarian",
+    "npm:pi-edit-session-in-place",
+    {
+      "source": "npm:pi-copy-user-message",
+      "extensions": [
+        "-extensions/copy-user-message.ts"
+      ]
+    },
+    "npm:pi-codex-goal",
+    "npm:@badliveware/pi-model-catalog",
+    "npm:@badliveware/pi-pr-upstream-status",
+    "npm:@miclivs/pi-charts"
   ],
-  "lastChangelogVersion": "0.75.4",
-  "defaultProvider": "opencode",
-  "defaultModel": "kimi-k2.6",
-  "defaultThinkingLevel": "high",
+  "lastChangelogVersion": "0.77.0",
+  "defaultProvider": "deepseek",
+  "defaultModel": "deepseek-v4-pro",
+  "defaultThinkingLevel": "xhigh",
   "hideThinkingBlock": true,
+  "quietStartup": true,
   "pi-screenshots": {
     "dir": "~/Pictures/Capturas de pantalla/"
   },
   "powerline": {
-    "preset": "default",
+    "preset": "compact",
     "customItems": [
       {
         "id": "ci",
@@ -119,10 +194,15 @@
   },
   "enableInstallTelemetry": false,
   "extensions": [
-    "-extensions/uv-with-cwd.ts"
+    "+extensions/usage/index.ts",
+    "+extensions/uv-with-cwd.ts"
   ],
   "workingVibeModel": "opencode-go/deepseek-v4-flash",
   "skills": [
-    "-../../.agents/skills/pp-scrape-creators/SKILL.md"
+    "-../../.agents/skills/pp-scrape-creators/SKILL.md",
+    "+skills/anti-ai-copy/SKILL.md",
+    "+skills/subagent-delegation/SKILL.md",
+    "+skills/verification-before-completion/SKILL.md",
+    "+skills/documentation-writing/SKILL.md"
   ]
 }
