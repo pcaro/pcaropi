@@ -200,7 +200,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | Paquete                                                                    | Repo               | ¿Qué hace?                                                                                                     |
 | -------------------------------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------- |
 | [**pi-lens**](https://github.com/apmantza/pi-lens)                         | GitHub (apmantza)  | Feedback de código en tiempo real: LSP, linters, formatters, type-checking, ast-grep.                          |
-| [**pi-token-burden**](https://github.com/Whamp/pi-token-burden)            | GitHub (Whamp)     | Desglose del presupuesto de tokens del system prompt vía `/token-burden`.                                      |
+| [**pi-token-burden**](https://github.com/Whamp/pi-token-burden)            | GitHub (Whamp)     | Desglose del presupuesto de tokens del system prompt vía `/token-burden`. Preferido sobre `pi-context-usage` (misión similar). |
 | [**pi-slopchop**](https://github.com/robzolkos/pi-slopchop)                | GitHub (robzolkos) | Revisión y anotación de código nativa en terminal. Anotaciones FIX/DISCUSS sobre el diff. Comando `/slopchop`. |
 | [**@tmustier/pi-code-actions**](https://github.com/tmustier/pi-extensions) | GitHub (tmustier)  | Selecciona bloques de código de mensajes del asistente para copiar, insertar o ejecutar con `/code`.           |
 
@@ -210,6 +210,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | --------------------------------------------------------------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------- |
 | [**pi-codex-goal**](https://www.npmjs.com/package/pi-codex-goal)                  | npm                      | Seguimiento de objetivos estilo Codex: `get_goal`, `create_goal`, `update_goal` para sesiones long-running. |
 | [**pi-cache-optimizer**](https://www.npmjs.com/package/pi-cache-optimizer)       | npm                      | Mejora las tasas de caché de prompts/KV con claves estables y estadísticas en el footer.            |
+| [**pi-cache-graph**](https://github.com/championswimmer/pi-cache-graph)       | GitHub (championswimmer) | Gráfico en vivo de hits/misses de prefix cache del proveedor directamente en el TUI. Comando `/cache-graph`. |
 | [**@badliveware/pi-model-catalog**](https://www.npmjs.com/package/@badliveware/pi-model-catalog) | npm | Expone el catálogo de modelos de Pi como herramienta para el agente (`list_pi_models`).              |
 
 #### Utilidades
@@ -217,11 +218,13 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | Paquete                                                                      | Repo                  | ¿Qué hace?                                                                                                                 |
 | ---------------------------------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | [**pi-head**](https://github.com/omerxx/pi-head)                             | GitHub (omerxx)       | Resumen de una línea al reenfocar el terminal tras inactividad. Ayuda con múltiples sesiones.                              |
+| [**pi-context-prune**](https://github.com/championswimmer/pi-context-prune)  | GitHub (championswimmer) | Resume batches de tool calls completados y poda los outputs crudos del contexto futuro. Recuperables vía `context_tree_query`. |
 | [**pi-smart-sessions**](https://github.com/HazAT/pi-smart-sessions)          | GitHub (HazAT)        | Selector compacto de sesiones (`/sessions`) con navegación por flechas.                                                    |
 | [**pi-ask-user**](https://github.com/nicobailon/pi-ask-user)                 | GitHub (nicobailon)   | Herramienta `ask_user` para preguntas estructuradas al agente con overlay interactivo, opciones múltiples y entrada libre. |
 | [**@ogulcancelik/pi-sketch**](https://github.com/ogulcancelik/pi-extensions) | GitHub (ogulcancelik) | Dibujo y bocetos desde Pi en el terminal.                                                                                  |
 | [**@diegopetrucci/pi-librarian**](https://www.npmjs.com/package/@diegopetrucci/pi-librarian) | npm | Investigación en GitHub con caché local de repos. Búsqueda web con evidencias y citas de código.                            |
 | [**@badliveware/pi-pr-upstream-status**](https://www.npmjs.com/package/@badliveware/pi-pr-upstream-status) | npm | Muestra el estado del PR upstream de la rama actual (abierto, mergeado, cerrado).                                            |
+| [**@mazli/pi-worktree**](https://github.com/HamdiMaz/Worktree)                   | GitHub (HamdiMaz)      | Crea y gestiona git worktrees desde Pi. `/worktree <rama>` abre una sesión aislada en `.worktrees/`, creando la rama y copiando recursos `.pi` automáticamente. |
 
 ## Themes
 
