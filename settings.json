@@ -4,7 +4,7 @@
     {
       "source": "npm:pi-powerline-footer",
       "extensions": [
-        "-index.ts"
+        "+index.ts"
       ]
     },
     "npm:@aliou/pi-guardrails",
@@ -147,7 +147,7 @@
     "npm:@badliveware/pi-pr-upstream-status",
     "npm:@miclivs/pi-charts"
   ],
-  "lastChangelogVersion": "0.77.0",
+  "lastChangelogVersion": "0.78.0",
   "defaultProvider": "deepseek",
   "defaultModel": "deepseek-v4-pro",
   "defaultThinkingLevel": "xhigh",
@@ -165,6 +165,14 @@
         "position": "right",
         "color": "success",
         "hideWhenMissing": true,
+        "excludeFromExtensionStatuses": true
+      },
+      {
+        "id": "watchdog",
+        "statusKey": "watchdog",
+        "position": "right",
+        "prefix": "",
+        "color": "warning",
         "excludeFromExtensionStatuses": true
       }
     ]
