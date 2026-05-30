@@ -169,6 +169,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | [**pi-edit-session-in-place**](https://www.npmjs.com/package/pi-edit-session-in-place)            | npm                      | Re-edita o elimina mensajes anteriores del usuario en la rama actual de la sesión.                                                   |
 | [**pi-copy-user-message**](https://www.npmjs.com/package/pi-copy-user-message)                    | npm                      | `/copy-user` copia el mensaje más reciente del usuario al portapapeles.                                                              |
 | [**pi-slim**](https://www.npmjs.com/package/pi-slim)                                              | npm                      | Adelgaza el system prompt por defecto. La documentación de Pi pasa a ser opt-in vía `/pi`.                                            |
+| [**@howaboua/pi-auto-trees**](https://github.com/IgorWarzocha/howaboua-pi-stuff/tree/main/packages/pi-auto-trees) | GitHub (IgorWarzocha) | Flujo incremental en sesiones largas: `/marker` fija un checkpoint, `/end` resume el trabajo hecho, vuelve al marker y avanza. Mantiene el contexto útil, descarta el ruido de implementación. Modos: `git`, `full`, custom prompt. |
 
 #### Seguridad y control
 
