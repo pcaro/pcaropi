@@ -115,6 +115,8 @@ Commands:
 
 Load first: `source ~/.gw.sh`
 
+See `references/gw.md` for detailed usage, common workflows, and gotchas.
+
 ## Project Management
 
 ### short - Shortcut CLI
