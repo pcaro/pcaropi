@@ -156,7 +156,7 @@ Only ask questions that require human judgment or preference. Before asking, con
 - "Do you want me to handle errors?" (obviously yes)
 - "Does this file exist?" (check yourself)
 
-When you have multiple questions, use `/answer` to open a structured Q&A interface — don't make the user answer inline in a wall of text.
+When you have multiple questions, use `ask_user` to open a structured Q&A interface — don't make the user answer inline in a wall of text.
 
 ---
 
@@ -167,7 +167,7 @@ This section applies to the main Pi agent, not subagents.
 ### Self-Invoke Commands
 
 You can execute slash commands yourself using the `execute_command` tool:
-- **Run `/answer`** after asking multiple questions — don't make the user invoke it
+- **Use `ask_user`** after asking multiple questions — don't make the user invoke anything
 - **Send follow-up prompts** to yourself
 
 ### History & Archives
@@ -196,7 +196,11 @@ ls ~/.pi/history/$(basename "$PWD")/research/
 
 ### Delegate to Subagents
 
-**Prefer subagent delegation** for any task that involves multiple steps or could benefit from specialized focus.
+**Mandatory:** Read both subagent skills before any subagent work:
+- **`subagent-delegation`** — decision tree: when to delegate, which model, downshift/upshift criteria
+- **`pi-subagents`** — execution patterns: single/parallel/chain/async, builtin agents, workflow recipes, control
+
+**For complex tasks, ALWAYS use subagents.** This is not optional — it ensures parallelism, fresh review, context isolation, and proper single-writer discipline.
 
 #### Available Agents
 
@@ -266,6 +270,7 @@ Skills provide specialized instructions for specific tasks. Load them when the c
 
 | When... | Load skill... |
 |---------|---------------|
+| Working with subagents (always — mandatory) | **`subagent-delegation`** + **`pi-subagents`** |
 | Starting work in a new/unfamiliar project, or asked to learn conventions | `learn-codebase` |
 | User wants to brainstorm / build something significant | `brainstorm` |
 | Making git commits (always — every commit must be polished and descriptive) | `commit` |

@@ -108,14 +108,11 @@ Work through requirements **one topic at a time**:
 
 ### How to Ask
 
-- Group related questions, use `/answer` for multiple questions
+- Group related questions, use `ask_user` for multiple questions
 - Prefer multiple choice when possible (easier to answer)
 - Don't overwhelm — if you have many questions, batch them logically
 
-```
-[After listing your questions]
-execute_command(command="/answer", reason="Opening Q&A for requirements")
-```
+Use `ask_user` to ask multiple questions at once via structured UI. Avoid walls of text.
 
 ### Keep Going Until Clear
 

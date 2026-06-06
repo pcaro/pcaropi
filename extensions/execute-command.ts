@@ -10,19 +10,18 @@ export default function (pi: ExtensionAPI) {
     name: "execute_command",
     label: "Execute Command",
     description: `Execute a slash command or send a message as if the user typed it. The message is added to the session history and triggers a new turn. Use this to:
-- Self-invoke /answer after asking multiple questions
 - Run /reload after creating skills
 - Execute any slash command programmatically
 - Send follow-up prompts to yourself
 
 The command/message appears in the conversation as a user message.`,
     parameters: Type.Object({
-      command: Type.String({ 
-        description: "The command or message to execute (e.g., '/answer', '/reload', or any text)" 
+      command: Type.String({
+        description: "The command or message to execute (e.g., '/reload' or any text)"
       }),
       reason: Type.Optional(
-        Type.String({ 
-          description: "Optional explanation for why you're executing this command (shown to user)" 
+        Type.String({
+          description: "Optional explanation for why you're executing this command (shown to user)"
         })
       ),
     }),
@@ -33,13 +32,13 @@ The command/message appears in the conversation as a user message.`,
       // Store command to be executed after agent turn ends
       pendingCommand = { command, reason };
 
-      const explanation = reason 
+      const explanation = reason
         ? `Queued for execution: ${command}\nReason: ${reason}`
         : `Queued for execution: ${command}`;
 
       return {
         content: [{ type: "text", text: explanation }],
-        details: { 
+        details: {
           command,
           reason,
           queued: true,
@@ -53,25 +52,12 @@ The command/message appears in the conversation as a user message.`,
     if (pendingCommand) {
       const { command } = pendingCommand;
       pendingCommand = null;
-      
-      // Special handling for /answer via event bus (needs context)
-      if (command === "/answer") {
-        setTimeout(() => {
-          pi.events.emit("trigger:answer", ctx);
-        }, 100);
-      } 
+
       // Auto-execute slash commands via sendUserMessage
-      else if (command.startsWith("/")) {
+      if (command.startsWith("/")) {
         setTimeout(() => {
           pi.sendUserMessage(command);
         }, 100);
-      }
-      // For non-command text, prefill editor and notify
-      else {
-        if (ctx.hasUI) {
-          ctx.ui.setEditorText(command);
-          ctx.ui.notify(`Press Enter to send: ${command}`, "info");
-        }
       }
     }
   });
