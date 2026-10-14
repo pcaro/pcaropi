@@ -104,7 +104,6 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 
 | Extensión                              | Comando(s)  | ¿Qué hace?                                                                                                                    |
 | -------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| [**files**](extensions/files.ts)       | `/files`    | Explorador de archivos interactivo con estado git, referencias de sesión, vista rápida y reveal en Finder.                    |
 | [**review**](extensions/review.ts)     | `/review`   | Revisión de código interactiva. Soporta PRs de GitHub, ramas, commits, cambios sin stage e instrucciones personalizadas.      |
 | [**todos**](extensions/todos.ts)       | `/todos`    | Gestor de TODOs en Markdown con respaldo en archivos. Crear, asignar (`claim`), actualizar y cerrar tareas con bloqueo y TUI. |
 | [**watchdog**](extensions/watchdog.ts) | `/watchdog` | Monitor de sesión. Usa Haiku como juez para detectar si el agente está atascado, en bucle o necesita intervención.            |
@@ -157,9 +156,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | Paquete                                                                        | Repo                | ¿Qué hace?                                                                                                             |
 | ------------------------------------------------------------------------------ | ------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | [**pi-subagents**](https://github.com/nicobailon/pi-subagents)                 | GitHub (nicobailon) | Delegación a subagentes (scout, worker, reviewer, planner, oracle). Cadenas, paralelo, foreground/background.          |
-| [**pi-interactive-shell**](https://github.com/nicobailon/pi-interactive-shell) | GitHub (nicobailon) | Ejecuta CLIs interactivos (vim, psql, ssh, npm dev) en overlay TUI. Modos: interactive, hands-free, dispatch, monitor. |
 | [**pi-intercom**](https://github.com/nicobailon/pi-intercom)                   | GitHub (nicobailon) | Mensajería 1:1 directa entre sesiones de Pi en la misma máquina. Herramienta `intercom` + overlay `/intercom`.          |
-| [**pi-ralplan**](https://www.npmjs.com/package/pi-ralplan)                     | npm                 | Planificación por consenso: spec → plan → ejecución con iteración Planner/Architect/Critic.                            |
 
 #### Sesión y prompts
 
@@ -204,6 +201,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | [**pi-token-burden**](https://github.com/Whamp/pi-token-burden)            | GitHub (Whamp)     | Desglose del presupuesto de tokens del system prompt vía `/token-burden`. Preferido sobre `pi-context-usage` (misión similar). |
 | [**pi-slopchop**](https://github.com/robzolkos/pi-slopchop)                | GitHub (robzolkos) | Revisión y anotación de código nativa en terminal. Anotaciones FIX/DISCUSS sobre el diff. Comando `/slopchop`. |
 | [**@tmustier/pi-code-actions**](https://github.com/tmustier/pi-extensions) | GitHub (tmustier)  | Selecciona bloques de código de mensajes del asistente para copiar, insertar o ejecutar con `/code`.           |
+| [**ponytail**](https://github.com/DietrichGebert/ponytail)                 | GitHub (DietrichGebert) | Modo senior vago: el menor cambio que resuelve la tarea, y una respuesta que se entiende de una lectura. Trae las skills `ponytail`, `ponytail-review`, `ponytail-audit`, `ponytail-debt`, `ponytail-gain` y `ponytail-help`. |
 
 #### Sistema del agente
 
@@ -213,6 +211,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | [**pi-cache-optimizer**](https://www.npmjs.com/package/pi-cache-optimizer)       | npm                      | Mejora las tasas de caché de prompts/KV con claves estables y estadísticas en el footer.            |
 | [**pi-cache-graph**](https://github.com/championswimmer/pi-cache-graph)       | GitHub (championswimmer) | Gráfico en vivo de hits/misses de prefix cache del proveedor directamente en el TUI. Comando `/cache-graph`. |
 | [**@badliveware/pi-model-catalog**](https://www.npmjs.com/package/@badliveware/pi-model-catalog) | npm | Expone el catálogo de modelos de Pi como herramienta para el agente (`list_pi_models`).              |
+| [**@howaboua/pi-cache-hit-predictor**](https://github.com/IgorWarzocha/howaboua-pi-stuff/tree/main/packages/pi-cache-hit-predictor) | GitHub (IgorWarzocha) | Predice qué prefijos de prompt-cache siguen siendo reutilizables cuando Pi cambia de modelo o de carril de razonamiento. |
 
 #### Utilidades
 
@@ -226,6 +225,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | [**@diegopetrucci/pi-librarian**](https://www.npmjs.com/package/@diegopetrucci/pi-librarian) | npm | Investigación en GitHub con caché local de repos. Búsqueda web con evidencias y citas de código.                            |
 | [**@badliveware/pi-pr-upstream-status**](https://www.npmjs.com/package/@badliveware/pi-pr-upstream-status) | npm | Muestra el estado del PR upstream de la rama actual (abierto, mergeado, cerrado).                                            |
 | [**@mazli/pi-worktree**](https://github.com/HamdiMaz/Worktree)                   | GitHub (HamdiMaz)      | Crea y gestiona git worktrees desde Pi. `/worktree <rama>` abre una sesión aislada en `.worktrees/`, creando la rama y copiando recursos `.pi` automáticamente. |
+| [**@nikiforovall/pi-scratchpad**](https://github.com/NikiforovAll/scratchpad) | GitHub (NikiforovAll) | Scratchpad por sesión sobre el CLI `scratch`: skills `scratch` y `planning-with-scratchpad`, más `/scratch ui/export/stop` para el visor de solo lectura. |
 
 ## Themes
 
