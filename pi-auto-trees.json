@@ -1,0 +1,7 @@
+{
+  "summary": {
+    "enabled": true,
+    "model": "opencode-go/gpt-5.6-luna",
+    "thinking": "low"
+  }
+}

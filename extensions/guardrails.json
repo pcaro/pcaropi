@@ -1,4 +1,5 @@
 {
+  "$schema": "https://unpkg.com/@aliou/pi-guardrails@0.19.0/schema.json",
   "policies": {
     "rules": [
       {
@@ -115,7 +116,7 @@
       }
     ]
   },
-  "version": "0.9.0-20260327",
+  "version": "0.19.0",
   "applyBuiltinDefaults": true,
   "onboarding": {
     "completed": true,

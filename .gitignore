@@ -18,6 +18,13 @@ mcp-cache.json
 mcp-npx-cache.json
 run-history.jsonl
 session-manager-config.toml
+models-store.json
+trust.json
+missions/
+install/
+pi-subagents/last-seen-version.json
+pi-cache-optimizer-stats.json
+howaboua-pi-stuff-changelog.json
 
 # Extension dependencies (install locally)
 pi-extensions/*/node_modules/

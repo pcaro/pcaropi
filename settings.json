@@ -29,12 +29,11 @@
     {
       "source": "git:github.com/nicobailon/pi-mcp-adapter",
       "extensions": [
-        "+index.ts"
+        "-index.ts"
       ]
     },
     "npm:@aliou/pi-processes",
     "npm:pi-prompt-template-model",
-    "npm:pi-interactive-shell",
     "npm:@aliou/pi-linkup",
     {
       "source": "https://github.com/omaclaren/pi-markdown-preview",
@@ -45,7 +44,7 @@
     {
       "source": "git:github.com/Whamp/pi-token-burden",
       "extensions": [
-        "+src/index.ts"
+        "-src/index.ts"
       ]
     },
     {
@@ -90,7 +89,12 @@
         "-skills/lsp-navigation/SKILL.md"
       ]
     },
-    "npm:pi-schedule-prompt",
+    {
+      "source": "npm:pi-schedule-prompt",
+      "extensions": [
+        "-src/index.ts"
+      ]
+    },
     "npm:pi-ask-user",
     {
       "source": "npm:@ogulcancelik/pi-sketch",
@@ -106,15 +110,6 @@
     },
     "npm:pi-inspect",
     "npm:pi-slim",
-    {
-      "source": "npm:pi-ralplan",
-      "extensions": [
-        "+pi/extensions/ralplan/index.ts"
-      ],
-      "skills": [
-        "+pi/skills/ralplan/SKILL.md"
-      ]
-    },
     {
       "source": "https://github.com/monotykamary/pi-invisible-continue",
       "extensions": [
@@ -145,12 +140,22 @@
     "npm:pi-codex-goal",
     "npm:@badliveware/pi-model-catalog",
     "npm:@badliveware/pi-pr-upstream-status",
-    "npm:@miclivs/pi-charts"
+    "npm:@miclivs/pi-charts",
+    "npm:pi-cache-graph",
+    "npm:pi-context-prune",
+    "npm:@mazli/pi-worktree",
+    "npm:@howaboua/pi-auto-trees",
+    "git:github.com/DietrichGebert/ponytail",
+    "npm:@nikiforovall/pi-scratchpad",
+    "npm:@howaboua/pi-cache-hit-predictor"
   ],
-  "lastChangelogVersion": "0.78.0",
-  "defaultProvider": "deepseek",
+  "lastChangelogVersion": "1.2.0",
+  "defaultProvider": "opencode",
   "defaultModel": "deepseek-v4-pro",
-  "defaultThinkingLevel": "xhigh",
+  "defaultThinkingLevel": "high",
+  "defaultTools": [
+    "+codemode"
+  ],
   "hideThinkingBlock": true,
   "quietStartup": true,
   "pi-screenshots": {
@@ -211,6 +216,7 @@
     "+skills/anti-ai-copy/SKILL.md",
     "+skills/subagent-delegation/SKILL.md",
     "+skills/verification-before-completion/SKILL.md",
-    "+skills/documentation-writing/SKILL.md"
+    "+skills/documentation-writing/SKILL.md",
+    "-skills/add-mcp-server/SKILL.md"
   ]
 }
