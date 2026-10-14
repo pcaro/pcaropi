@@ -2,7 +2,7 @@
 name: librarian
 description: Researches external GitHub repositories and project history using the librarian extension tool.
 tools: librarian, read, grep, find, ls, contact_supervisor
-model: deepseek/deepseek-v4-flash
+model: opencode-go/deepseek-v4.1-flash
 thinking: high
 systemPromptMode: replace
 inheritProjectContext: true

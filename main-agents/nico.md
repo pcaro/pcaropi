@@ -1,5 +1,5 @@
 ---
-model: opencode-go/minimax-m2.7
+model: opencode-go/minimax-m3
 extensions:
   - npm:pi-web-access
   - npm:pi-subagents

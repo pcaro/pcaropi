@@ -2,7 +2,7 @@
 name: diff-summarizer
 description: Summarizes the current VCS diff and highlights review risk hotspots.
 tools: read, grep, find, ls, bash, contact_supervisor
-model: deepseek/deepseek-v4-flash
+model: opencode-go/deepseek-v4.1-flash
 thinking: high
 systemPromptMode: replace
 inheritProjectContext: true

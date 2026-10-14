@@ -179,8 +179,8 @@
   },
   "modelProfiles": [
     {
-      "model": "google-gemini-cli/gemini-3.1-pro-preview",
-      "thinking": "xhigh",
+      "model": "openrouter/google/gemini-3.1-pro-preview",
+      "thinking": "high",
       "label": "Gemini Deep"
     },
     {
@@ -205,7 +205,7 @@
     "+extensions/usage/index.ts",
     "+extensions/uv-with-cwd.ts"
   ],
-  "workingVibeModel": "opencode-go/deepseek-v4-flash",
+  "workingVibeModel": "opencode-go/deepseek-v4.1-flash",
   "skills": [
     "-../../.agents/skills/pp-scrape-creators/SKILL.md",
     "+skills/anti-ai-copy/SKILL.md",

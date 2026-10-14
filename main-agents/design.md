@@ -1,6 +1,6 @@
 ---
 description: UI/UX design specialist agent
-model: anthropic/claude-opus-4-7
+model: openrouter/anthropic/claude-opus-4.7
 thinking: medium
 append-system-prompt: true
 ---
