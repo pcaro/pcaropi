@@ -61,7 +61,6 @@ Custom skills located in `skills/`:
 | **ty**                                  | Type checker de Python ultrarrápido (pyright) — usar **siempre** con código Python                  | `ty` CLI                                                  |
 | **update-changelog**                    | Actualizar CHANGELOG.md entre releases                                                              | (referencia)                                              |
 | **uv**                                  | Gestor de paquetes Python (usar **siempre** en lugar de pip/poetry con código Python)               | `uv` CLI                                                  |
-| **verification-before-completion**       | Exigir evidencia fresca antes de afirmar que algo está hecho (tests, build, lint, diff)             | git, bash                                                 |
 | **web-browser**                         | Interactuar con páginas web (click, formularios, navegación) vía Chrome headless CDP                | `scripts/*.js` (CDP)                                      |
 
 #### Quick Reference

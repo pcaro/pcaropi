@@ -128,7 +128,8 @@
     "git:github.com/DietrichGebert/ponytail",
     "npm:@nikiforovall/pi-scratchpad",
     "npm:@fyeeme/pi-session-name",
-    "npm:pi-claude-bridge"
+    "npm:pi-claude-bridge",
+    "npm:pi-provider-opencode-console"
   ],
   "lastChangelogVersion": "1.4.0",
   "defaultProvider": "opencode-go",
@@ -196,7 +197,6 @@
     "-../../.agents/skills/pp-scrape-creators/SKILL.md",
     "+skills/anti-ai-copy/SKILL.md",
     "+skills/subagent-delegation/SKILL.md",
-    "+skills/verification-before-completion/SKILL.md",
     "+skills/documentation-writing/SKILL.md",
     "-skills/add-mcp-server/SKILL.md"
   ]
