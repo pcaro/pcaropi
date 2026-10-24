@@ -32,14 +32,14 @@ Use this skill to decide whether to delegate, what to delegate, and which suppor
 ## Model Selection
 Agent files may define default models. Use the agent default when it fits the task; choose an explicit override only when capability, cost/quota/scarcity, latency, or context-window needs materially favor a different enabled model.
 
-Before passing a model override, downshifting, or upshifting, call `list_pi_models` unless the current session already inspected it recently.
+Before passing a model override, downshifting, or upshifting, run `pi --list-models <pattern>` unless the current session already inspected models recently.
 
 Selection rules:
-- choose rows with `support: yes` and `enabled: yes` unless the user explicitly authorizes configuration changes
-- `auth: yes` only means credentials exist; it is not enough for overrides
-- models excluded or marked `support: no` are unavailable; use `unsupported: "include"` or `unsupported: "only"` only for diagnostics
+- only models listed by `pi --list-models` are usable locally; it already excludes models this Pi build does not support
+- check credentials with `pi auth check --provider <provider>` before relying on a provider
+- OpenRouter rows prefixed with `~` are routers/aliases with placeholder pricing, not fixed models
 - `spark` means premium very-low-latency, not cheap; use Spark only when speed is worth the cost
-- if `list_pi_models` is unavailable, inspect current config such as `~/.pi/agent/settings.json`; if still uncertain, omit the override and state why the default is acceptable
+- if `pi --list-models` fails, inspect current config such as `~/.pi/agent/settings.json` and `~/.pi/agent/models.json`; if still uncertain, omit the override and state why the default is acceptable
 - do not hard-code model ladders in prompts; provider support, cost, quota, speed, and quality change
 - avoid scarce or credit-limited providers when an enabled Codex/default model is suitable; use provider-specific models only when their capability is worth the cost or the user asks for them
 - when choosing among Codex models, prefer `openai-codex/gpt-5.4` as the normal default, `openai-codex/gpt-5.4-mini` for simple/cheap tasks, and reserve `openai-codex/gpt-5.5` for very important or high-stakes work
@@ -71,7 +71,7 @@ Use a generic builtin only as an explicit degraded fallback when the intended cu
 ## Workflow
 1. Define the subtask, deliverable, acceptance criteria, allowed files/sources, and parent validation.
 2. Discover agents/models when uncertain; do not copy placeholders or stale model names.
-3. Choose a supported enabled model from `list_pi_models` when using a model override.
+3. Choose a model listed by `pi --list-models` and backed by working credentials when using a model override.
 4. Use `TaskExecute` for task-tracked delegation when it fits; use `subagent` directly for custom agents, model overrides, output files, async runs, or parallel fan-out.
 5. Keep prompts concrete and limited to context the subagent actually needs.
 6. Review the result, integrate deliberately, and re-validate.

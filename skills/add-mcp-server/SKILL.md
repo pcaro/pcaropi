@@ -5,7 +5,7 @@ description: Add an MCP server to pi. Use when asked to "add mcp server", "confi
 
 # Add an MCP Server
 
-Add an MCP server configuration to `pi-mcp-adapter`. Determine scope and server type, write the config, and verify the connection.
+Pi has native MCP support (`builtin:mcp`). Prefer the `pi mcp` commands; write the JSON only when several servers change at once.
 
 ## Step 1: Determine Scope
 
@@ -14,34 +14,40 @@ Ask the user if not obvious from context:
 | Scope | Config File | When to Use |
 |-------|-------------|-------------|
 | **Global** | `~/.pi/agent/mcp.json` | Server used across all projects |
-| **Project** | `.pi/mcp.json` (project root) | Server specific to one project |
+| **Project** | `.pi/mcp.json` (project root, trusted projects only) | Server specific to one project |
 
-Project-local configs override global ones. Both files use the same format.
+A project entry replaces a user-level entry with the same name. A project entry with no `command`/`url` overrides only `enabled`, `exposure`, and `toolExposure`, keeping the rest of the user-level server.
 
 ## Step 2: Determine Server Type
 
-MCP servers connect via **stdio** (local process) or **HTTP** (remote URL).
+MCP servers connect via **stdio** (local process) or **streamable HTTP** (remote URL). Legacy SSE is not supported.
 
-**Stdio server** — runs a local command:
-```json
-{
-  "mcpServers": {
-    "server-name": {
-      "command": "npx",
-      "args": ["-y", "package-name@latest"],
-      "env": { "KEY": "value" }
-    }
-  }
-}
+**Stdio server:**
+```bash
+pi mcp add server-name -- npx -y package-name@latest
+pi mcp add server-name --env API_KEY='${TOOLS_KEY}' -- uvx tools-mcp
 ```
 
-**HTTP server** — connects to a URL:
+**HTTP server:**
+```bash
+pi mcp add server-name --url https://example.com/mcp --bearer-token-env-var DOCS_TOKEN
+pi mcp add server-name --url https://example.com/mcp --header "Authorization=Bearer ${TOKEN}"
+```
+
+Add `-l` to write `.pi/mcp.json` instead of the user-level file.
+
+Equivalent JSON:
 ```json
 {
   "mcpServers": {
-    "server-name": {
-      "url": "http://localhost:8080/mcp",
-      "headers": { "Authorization": "Bearer token" }
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    },
+    "docs": {
+      "url": "https://example.com/mcp",
+      "headers": { "Authorization": "Bearer ${DOCS_TOKEN}" },
+      "description": "Search and read the product documentation"
     }
   }
 }
@@ -49,48 +55,33 @@ MCP servers connect via **stdio** (local process) or **HTTP** (remote URL).
 
 ## Step 3: Gather Configuration
 
-Collect only what's needed. All fields except `command`/`url` are optional.
+Collect only what's needed. `command` or `url` selects the transport; everything else is optional.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `command` | string | Executable to run (stdio) |
-| `args` | string[] | Command arguments (stdio) |
-| `env` | object | Environment variables (stdio) |
+| `command` | string | One executable, no shell syntax (stdio) |
+| `args` | string[] | Arguments for `command` (stdio) |
+| `env` | object | Environment variables; values support `${VAR}` and `!command` (stdio) |
 | `cwd` | string | Working directory (stdio) |
-| `url` | string | Server URL (HTTP) |
-| `headers` | object | HTTP headers (HTTP) |
-| `auth` | `"oauth"` or `"bearer"` | Auth method (HTTP) |
-| `bearerToken` | string | Static bearer token |
-| `bearerTokenEnv` | string | Env var name for bearer token |
-| `lifecycle` | `"lazy"` / `"eager"` / `"keep-alive"` | Connection strategy (default: `lazy`) |
-| `idleTimeout` | number | Minutes before idle disconnect |
-| `debug` | boolean | Show server stderr |
+| `url` | string | Streamable HTTP endpoint (HTTP) |
+| `headers` | object | HTTP headers; values support `${VAR}` and `!command` (HTTP) |
+| `oauth` | object | OAuth client settings; sign-in via `pi mcp login` (HTTP) |
+| `timeout` | number | Per-request timeout in seconds (default 60) |
+| `enabled` | boolean | Keep the entry without connecting when `false` |
+| `description` | string | One sentence about the server; used in the system prompt and tool search ranking |
+| `exposure` / `toolExposure` | string | How the server's tools reach the model |
 
-Lifecycle modes:
-- **lazy** (default) — connects on first tool call, disconnects after idle timeout
-- **eager** — connects at session start, no auto-disconnect
-- **keep-alive** — connects at start, auto-reconnects if dropped
+Server names allow only letters, digits, `_`, and `-`. Tools are named `mcp__<server>__<tool>`.
 
 ## Step 4: Write the Config
 
-1. Read the target config file if it exists
-2. Merge the new server into the existing `mcpServers` object
-3. Write the updated JSON
-
-If the file doesn't exist, create it with the full structure:
-```json
-{
-  "mcpServers": {
-    "server-name": { ... }
-  }
-}
-```
-
-Warn if a server with the same name already exists and confirm before overwriting.
+1. Prefer `pi mcp add` — it validates and preserves the rest of the file.
+2. If editing JSON directly, read the target file first, merge into `mcpServers`, and write it back.
+3. Warn if a server with the same name already exists and confirm before overwriting.
+4. Do not put secrets in a project `mcp.json`, and do not commit either file with credentials in it.
 
 ## Step 5: Verify
 
-1. Run `/reload` to pick up the new config
-2. Use `mcp({ connect: "server-name" })` to test the connection
-3. Use `mcp({ server: "server-name" })` to list available tools
-4. Report success or troubleshoot connection errors
+1. Run `pi mcp list` (or `pi mcp list --json`) to check state, tool count, and errors.
+2. From inside a session, `/reload` picks up changes made outside it; `/mcp` inspects servers, signs in, reconnects, and toggles exposure.
+3. With codemode, MCP tools are reachable via `searchTools('server-name')` and `describeTool(...)`.

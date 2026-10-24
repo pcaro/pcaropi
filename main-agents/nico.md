@@ -5,7 +5,6 @@ extensions:
   - npm:pi-subagents
   - npm:pi-prompt-template-model
   - npm:pi-powerline-footer
-  - npm:pi-mcp-adapter
   - npm:pi-interview
   - npm:pi-boomerang
   - npm:pi-review-loop

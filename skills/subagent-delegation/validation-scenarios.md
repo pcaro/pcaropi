@@ -13,9 +13,9 @@ Pressure-test at least these cases, unless the validation gap is recorded:
    - Scenario: inspect `docs/*.md` and `config/*.json` for a key and return matches.
    - Expected: delegate when batching saves time/context; use cheaper or less scarce supported enabled model if available.
 
-3. **Stale/unsupported model temptation** -> call `list_pi_models`.
+3. **Stale/unsupported model temptation** -> run `pi --list-models <pattern>`.
    - Scenario: remembered `openai-codex/gpt-5.1-codex-mini` sounds cheap.
-   - Expected: reject stale/unsupported model; choose only `support: yes` + `enabled: yes`, or omit override/record gap.
+   - Expected: reject stale/unsupported model; choose only a model the local build lists, or omit the override and record the gap.
 
 4. **Spark temptation** -> do not treat premium-speed as cheap.
    - Scenario: cost-sensitive routine docs search and `gpt-5.3-codex-spark` is enabled.
