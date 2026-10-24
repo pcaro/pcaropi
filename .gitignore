@@ -1,5 +1,6 @@
 # Sensitive - don't sync
 auth.json
+mcp-auth.json
 
 # Local state - don't sync
 .pi/
@@ -14,6 +15,7 @@ powerline-footer/
 # Pi runtime files (created when this repo is ~/.pi/agent/)
 git/
 intercom/
+mcp.json
 mcp-cache.json
 mcp-npx-cache.json
 run-history.jsonl
@@ -35,6 +37,10 @@ skills/**/node_modules
 .pi-lens/
 inspect/
 npm/
+
+# Backups
+*.bak
+*.bak.*
 
 # OS files
 .DS_Store
