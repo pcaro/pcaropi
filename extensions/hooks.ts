@@ -2,12 +2,10 @@
  * Hooks Extension
  *
  * Wires together all hooks for the defaults-features extension set.
- * Imports and registers: terminal-title, session-name, and system-prompt hooks.
+ * Imports and registers: system-prompt.
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { setupTerminalTitleHook } from "./terminal-title";
-import { setupSessionNameHook } from "./session-name";
 import { setupSystemPromptHook } from "./system-prompt";
 
 /**
@@ -15,8 +13,6 @@ import { setupSystemPromptHook } from "./system-prompt";
  * Called during extension initialization.
  */
 export function setupHooks(pi: ExtensionAPI): void {
-	setupSessionNameHook(pi);
-	setupTerminalTitleHook(pi);
 	setupSystemPromptHook(pi);
 }
 
