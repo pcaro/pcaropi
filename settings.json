@@ -26,12 +26,6 @@
         "-skills/chrome-cdp/SKILL.md"
       ]
     },
-    {
-      "source": "git:github.com/nicobailon/pi-mcp-adapter",
-      "extensions": [
-        "-index.ts"
-      ]
-    },
     "npm:@aliou/pi-processes",
     "npm:pi-prompt-template-model",
     "npm:@aliou/pi-linkup",
@@ -43,18 +37,6 @@
     },
     {
       "source": "git:github.com/Whamp/pi-token-burden",
-      "extensions": [
-        "-src/index.ts"
-      ]
-    },
-    {
-      "source": "git:github.com/HazAT/pi-smart-sessions",
-      "extensions": [
-        "+extensions/smart-sessions.ts"
-      ]
-    },
-    {
-      "source": "npm:pi-slopchop",
       "extensions": [
         "-src/index.ts"
       ]
@@ -138,20 +120,19 @@
       ]
     },
     "npm:pi-codex-goal",
-    "npm:@badliveware/pi-model-catalog",
     "npm:@badliveware/pi-pr-upstream-status",
     "npm:@miclivs/pi-charts",
-    "npm:pi-cache-graph",
     "npm:pi-context-prune",
     "npm:@mazli/pi-worktree",
     "npm:@howaboua/pi-auto-trees",
     "git:github.com/DietrichGebert/ponytail",
     "npm:@nikiforovall/pi-scratchpad",
-    "npm:@howaboua/pi-cache-hit-predictor"
+    "npm:@fyeeme/pi-session-name",
+    "npm:pi-claude-bridge"
   ],
-  "lastChangelogVersion": "1.2.0",
-  "defaultProvider": "opencode",
-  "defaultModel": "deepseek-v4-pro",
+  "lastChangelogVersion": "1.4.0",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "deepseek-v4.1-flash",
   "defaultThinkingLevel": "high",
   "defaultTools": [
     "+codemode"

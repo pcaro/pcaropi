@@ -55,7 +55,7 @@ Custom skills located in `skills/`:
 | **review-rubric**                       | Guía y rúbrica de calidad para revisiones de código (usada por /review y el subagente reviewer)     | (referencia)                                              |
 | **ruff**                                | Linter y formateador de Python (usar **siempre** con código Python)                                 | `ruff` CLI                                                |
 | **session-reader**                      | Leer y analizar archivos .jsonl de sesiones de pi                                                   | bash, read                                                |
-| **subagent-delegation**                  | Decidir cuándo delegar trabajo acotado a subagentes y qué modelo usar (downshift/upshift)          | `list_pi_models`, `subagent`, `TaskExecute`               |
+| **subagent-delegation**                 | Decidir cuándo delegar trabajo acotado a subagentes y qué modelo usar (downshift/upshift)           | `pi --list-models`, `subagent`, `TaskExecute`             |
 | **[show-me](skills/show-me/README.md)** | Demostrar que el código funciona — grabar sesiones demo en Kitty                                    | `scripts/kitty_screenshot.sh`, `scripts/wait_for_text.sh` |
 | **summarize**                           | Convertir URL/PDF/DOCX/PPTX a Markdown con markitdown                                               | `to-markdown.mjs`                                         |
 | **ty**                                  | Type checker de Python ultrarrápido (pyright) — usar **siempre** con código Python                  | `ty` CLI                                                  |
@@ -91,7 +91,6 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | Extensión                                                | Comando(s)           | ¿Qué hace?                                                                                                                   |
 | -------------------------------------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | [**context**](extensions/context.ts)                     | `/context`           | Muestra el contexto cargado: tokens, skills, AGENTS.md, extensiones, prompts y archivos de sesión.                           |
-| [**session-name**](extensions/session-name.ts)           | _(automático)_       | Genera nombres descriptivos de sesión con IA tras el primer turno del asistente.                                             |
 | [**session-breakdown**](extensions/session-breakdown.ts) | `/session-breakdown` | Desglose interactivo del historial (7/30/90 días): sesiones, mensajes, tokens y coste por modelo con gráfico inline.         |
 | [**branch**](extensions/branch.ts)                       | `/branch`            | Resume la conversación y arranca una nueva rama hija con el contexto comprimido.                                             |
 |                                                          | `/compress`          | Resume toda la sesión y crea una sesión nueva (la original se preserva).                                                     |
@@ -112,7 +111,6 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 
 | Extensión                                                | Comando(s)     | ¿Qué hace?                                                                                       |
 | -------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
-| [**terminal-title**](extensions/terminal-title.ts)       | _(automático)_ | Actualiza el título de la ventana del terminal con el proyecto/directorio actual.                |
 | [**notify**](extensions/notify.ts)                       | _(automático)_ | Notificaciones de escritorio (`notify-send`) cuando el agente completa un turno.                 |
 | [**herdr-agent-state**](extensions/herdr-agent-state.ts) | _(automático)_ | Reporta el estado de pi (working/blocked/idle) a herdr vía unix socket para seguimiento en pane. |
 
@@ -123,7 +121,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | [**execute-command**](extensions/execute-command.ts)   | _(tool interno)_ | Registra `execute_command` para que el agente se auto-invoque comandos slash (`/answer`, `/reload`, etc.) o se envíe mensajes. |
 | [**get-current-time**](extensions/get-current-time.ts) | _(tool interno)_ | Registra `get_current_time` para que el agente consulte la fecha/hora actual.                                                  |
 | [**system-prompt**](extensions/system-prompt.ts)       | _(automático)_   | Añade guías de uso de herramientas al system prompt antes de cada turno del agente.                                            |
-| [**hooks**](extensions/hooks.ts)                       | _(wiring)_       | Punto de entrada único que registra los hooks de `terminal-title`, `session-name` y `system-prompt`.                           |
+| [**hooks**](extensions/hooks.ts)                       | _(wiring)_       | Punto de entrada único que registra los hooks de `system-prompt`.                                                              |
 
 #### Métricas
 
@@ -179,7 +177,6 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 
 | Paquete                                                                                        | Repo                | ¿Qué hace?                                                                                            |
 | ---------------------------------------------------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------- |
-| [**pi-mcp-adapter**](https://github.com/nicobailon/pi-mcp-adapter)                             | GitHub (nicobailon) | Adaptador MCP (~200 tokens). Descubre servidores MCP bajo demanda, arranque lazy, UIs interactivas.   |
 | [**@matheusbbarni/pi-stitch-mcp**](https://www.npmjs.com/package/@matheusbbarni/pi-stitch-mcp) | npm                 | Integración con Stitch MCP: estado de conexión, listar/leer recursos y prompts de servidores MCP.     |
 | [**@aliou/pi-linkup**](https://github.com/aliou/pi-linkup)                                     | GitHub (aliou)      | Búsqueda web y extracción de contenido: `linkup_web_search`, `linkup_web_answer`, `linkup_web_fetch`. |
 | [**chrome-cdp-skill**](https://github.com/pasky/chrome-cdp-skill)                              | GitHub (pasky)      | Inspeccionar/depurar Chrome local vía CDP (solo con aprobación explícita).                            |
@@ -199,7 +196,6 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | -------------------------------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------- |
 | [**pi-lens**](https://github.com/apmantza/pi-lens)                         | GitHub (apmantza)  | Feedback de código en tiempo real: LSP, linters, formatters, type-checking, ast-grep.                          |
 | [**pi-token-burden**](https://github.com/Whamp/pi-token-burden)            | GitHub (Whamp)     | Desglose del presupuesto de tokens del system prompt vía `/token-burden`. Preferido sobre `pi-context-usage` (misión similar). |
-| [**pi-slopchop**](https://github.com/robzolkos/pi-slopchop)                | GitHub (robzolkos) | Revisión y anotación de código nativa en terminal. Anotaciones FIX/DISCUSS sobre el diff. Comando `/slopchop`. |
 | [**@tmustier/pi-code-actions**](https://github.com/tmustier/pi-extensions) | GitHub (tmustier)  | Selecciona bloques de código de mensajes del asistente para copiar, insertar o ejecutar con `/code`.           |
 | [**ponytail**](https://github.com/DietrichGebert/ponytail)                 | GitHub (DietrichGebert) | Modo senior vago: el menor cambio que resuelve la tarea, y una respuesta que se entiende de una lectura. Trae las skills `ponytail`, `ponytail-review`, `ponytail-audit`, `ponytail-debt`, `ponytail-gain` y `ponytail-help`. |
 
@@ -209,9 +205,8 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | --------------------------------------------------------------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------- |
 | [**pi-codex-goal**](https://www.npmjs.com/package/pi-codex-goal)                  | npm                      | Seguimiento de objetivos estilo Codex: `get_goal`, `create_goal`, `update_goal` para sesiones long-running. |
 | [**pi-cache-optimizer**](https://www.npmjs.com/package/pi-cache-optimizer)       | npm                      | Mejora las tasas de caché de prompts/KV con claves estables y estadísticas en el footer.            |
-| [**pi-cache-graph**](https://github.com/championswimmer/pi-cache-graph)       | GitHub (championswimmer) | Gráfico en vivo de hits/misses de prefix cache del proveedor directamente en el TUI. Comando `/cache-graph`. |
-| [**@badliveware/pi-model-catalog**](https://www.npmjs.com/package/@badliveware/pi-model-catalog) | npm | Expone el catálogo de modelos de Pi como herramienta para el agente (`list_pi_models`).              |
-| [**@howaboua/pi-cache-hit-predictor**](https://github.com/IgorWarzocha/howaboua-pi-stuff/tree/main/packages/pi-cache-hit-predictor) | GitHub (IgorWarzocha) | Predice qué prefijos de prompt-cache siguen siendo reutilizables cuando Pi cambia de modelo o de carril de razonamiento. |
+| [**@fyeeme/pi-session-name**](https://github.com/fyeeme/pi-packages)            | GitHub (fyeeme)          | Auto-nombra sesiones con IA (modos follow/first/auto), `/rename`, y nunca pisa un nombre puesto a mano. |
+| [**pi-claude-bridge**](https://github.com/elidickinson/pi-claude-bridge)          | GitHub (elidickinson)    | Puente a Claude Code (Agent SDK): modelos `claude-bridge/*` en `/model` y tool `AskClaude`.         |
 
 #### Utilidades
 
@@ -219,7 +214,6 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | ---------------------------------------------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | [**pi-head**](https://github.com/omerxx/pi-head)                             | GitHub (omerxx)       | Resumen de una línea al reenfocar el terminal tras inactividad. Ayuda con múltiples sesiones.                              |
 | [**pi-context-prune**](https://github.com/championswimmer/pi-context-prune)  | GitHub (championswimmer) | Resume batches de tool calls completados y poda los outputs crudos del contexto futuro. Recuperables vía `context_tree_query`. |
-| [**pi-smart-sessions**](https://github.com/HazAT/pi-smart-sessions)          | GitHub (HazAT)        | Selector compacto de sesiones (`/sessions`) con navegación por flechas.                                                    |
 | [**pi-ask-user**](https://github.com/nicobailon/pi-ask-user)                 | GitHub (nicobailon)   | Herramienta `ask_user` para preguntas estructuradas al agente con overlay interactivo, opciones múltiples y entrada libre. |
 | [**@ogulcancelik/pi-sketch**](https://github.com/ogulcancelik/pi-extensions) | GitHub (ogulcancelik) | Dibujo y bocetos desde Pi en el terminal.                                                                                  |
 | [**@diegopetrucci/pi-librarian**](https://www.npmjs.com/package/@diegopetrucci/pi-librarian) | npm | Investigación en GitHub con caché local de repos. Búsqueda web con evidencias y citas de código.                            |
