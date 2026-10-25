@@ -28,7 +28,6 @@
     },
     "npm:@aliou/pi-processes",
     "npm:pi-prompt-template-model",
-    "npm:@aliou/pi-linkup",
     {
       "source": "https://github.com/omaclaren/pi-markdown-preview",
       "extensions": [
