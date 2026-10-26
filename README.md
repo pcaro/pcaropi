@@ -48,8 +48,9 @@ La key viaja como header `Authorization: Bearer ${LINKUP_API_KEY}`, nunca en la 
 ## Skills
 
 Only the skills shaped around pi's own tools live here. Everything agent-agnostic
-(Python tooling, git, writing, design, CLIs) moved to `~/.agents/skills`, a separate repo
-that both pi and opencode read natively.
+(Python tooling, git, writing, design, CLIs) moved to
+[`pcaro/agent-skills`](https://github.com/pcaro/agent-skills), which installs to
+`~/.agents/skills` — a path both pi and opencode read natively.
 
 | Skill                                   | When to use                                                                                         | Tools / Scripts                                           |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
