@@ -193,10 +193,7 @@
   ],
   "workingVibeModel": "opencode-go/deepseek-v4.1-flash",
   "skills": [
-    "-../../.agents/skills/pp-scrape-creators/SKILL.md",
-    "+../../.agents/skills/anti-ai-copy/SKILL.md",
-    "+skills/subagent-delegation/SKILL.md",
-    "+../../.agents/skills/documentation-writing/SKILL.md",
-    "-skills/add-mcp-server/SKILL.md"
+    "-skills/add-mcp-server/SKILL.md",
+    "-/home/pcaro/.agents/skills/pp-scrape-creators/SKILL.md"
   ]
 }
