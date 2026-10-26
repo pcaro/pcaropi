@@ -9,6 +9,8 @@ bin/
 
 pi-crash.log
 pi-debug.log
+claude-bridge.json
+claude-bridge-diag.log
 
 powerline-footer/
 
