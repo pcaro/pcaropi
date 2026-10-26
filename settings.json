@@ -131,7 +131,7 @@
     "npm:pi-provider-opencode-console"
   ],
   "lastChangelogVersion": "1.4.0",
-  "defaultProvider": "opencode-go",
+  "defaultProvider": "opencode-go-console",
   "defaultModel": "deepseek-v4.1-flash",
   "defaultThinkingLevel": "high",
   "defaultTools": [
