@@ -9,20 +9,24 @@ Clone this repo directly to `~/.pi/agent/` — pi auto-discovers everything from
 ### Fresh machine
 
 ```bash
-# 1. Install pi, plus gh (for the private skills repo) and gitleaks (commit hook)
+# 1. Install pi, plus gh (private skills repo) and gitleaks (commit hook)
 
-# 2. Clone config and shared skills
+# 2. Let gh drive git over HTTPS — no SSH key required
+gh auth login
+gh auth setup-git
+
+# 3. Clone config and shared skills
 mkdir -p ~/.pi
-git clone git@github.com:pcaro/pcaropi ~/.pi/agent
-git clone git@github.com:pcaro/agent-skills ~/.agents
+git clone https://github.com/pcaro/pcaropi ~/.pi/agent
+git clone https://github.com/pcaro/agent-skills ~/.agents
 
-# 3. Enable the commit hook — core.hooksPath is local git config, it does not clone
+# 4. Enable the commit hook — core.hooksPath is local git config, it does not clone
 cd ~/.pi/agent && git config core.hooksPath .githooks
 
-# 4. Install the packages declared in settings.json
+# 5. Install the packages declared in settings.json
 pi update --extensions
 
-# 5. Credentials: run /login inside pi, one per provider you use
+# 6. Credentials: run /login inside pi, one per provider you use
 pi          # then /login anthropic, /login openrouter, ...
 ```
 
