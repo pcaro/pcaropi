@@ -29,6 +29,20 @@ cd ~/.pi/agent && ./setup.sh
 cd ~/.pi/agent && git pull
 ```
 
+### MCP servers
+
+`mcp.json` no se versiona: es específico de la máquina y depende de variables de entorno. Para reconstruirlo:
+
+```bash
+export LINKUP_API_KEY=...   # https://app.linkup.so
+
+pi mcp add linkup --url https://mcp.linkup.so/mcp \
+  --bearer-token-env-var LINKUP_API_KEY \
+  --description "Linkup web search, fetch/scrape, and long-running research over the live web"
+```
+
+La key viaja como header `Authorization: Bearer ${LINKUP_API_KEY}`, nunca en la URL. Los tools salen como `mcp__linkup__linkup_search`, `..._fetch`, `..._research` y `..._get_research`; los detalles de uso están en la skill [**linkup-mcp**](skills/linkup-mcp/SKILL.md).
+
 ---
 
 ## Skills
@@ -50,6 +64,7 @@ Custom skills located in `skills/`:
 | **google-workspace**                    | Acceder a Drive, Docs, Calendar, Gmail, Sheets, Slides, Chat, People sin MCP                        | `scripts/auth.js`, `scripts/workspace.js`                 |
 | **herdr**                               | Controlar herdr desde dentro: workspaces, tabs, paneles, spawn agentes (cuando HERDR_ENV=1)         | herdr CLI, unix socket                                    |
 | **learn-codebase**                      | Descubrir convenciones del proyecto y escanear riesgos de seguridad al empezar en un código nuevo   | grep, find, read                                          |
+| **linkup-mcp**                          | Llamar a Linkup vía MCP: nombres con guiones bajos, shape de respuesta, codemode para no reventar contexto, cuándo caer al REST | `linkup_search`, `linkup_fetch`, `linkup_research`        |
 | **presentation-creator**                | Crear presentaciones con datos usando React, Vite, Recharts y branding Sentry                       | bash, write, npm                                          |
 | **preview-markdown-browser**            | Renderizar la última respuesta (o un .md) como HTML en el navegador                                 | bash                                                      |
 | **review-rubric**                       | Guía y rúbrica de calidad para revisiones de código (usada por /review y el subagente reviewer)     | (referencia)                                              |
@@ -174,10 +189,11 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 
 #### MCP y conectividad externa
 
+Los servidores MCP nativos no son paquetes: el único configurado hoy es `linkup`, documentado en [MCP servers](#mcp-servers).
+
 | Paquete                                                                                        | Repo                | ¿Qué hace?                                                                                            |
 | ---------------------------------------------------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------- |
 | [**@matheusbbarni/pi-stitch-mcp**](https://www.npmjs.com/package/@matheusbbarni/pi-stitch-mcp) | npm                 | Integración con Stitch MCP: estado de conexión, listar/leer recursos y prompts de servidores MCP.     |
-| [**@aliou/pi-linkup**](https://github.com/aliou/pi-linkup)                                     | GitHub (aliou)      | Búsqueda web y extracción de contenido: `linkup_web_search`, `linkup_web_answer`, `linkup_web_fetch`. |
 | [**chrome-cdp-skill**](https://github.com/pasky/chrome-cdp-skill)                              | GitHub (pasky)      | Inspeccionar/depurar Chrome local vía CDP (solo con aprobación explícita).                            |
 | [**pi-add-dir**](https://github.com/itisbryan/pi-add-dir)                                      | GitHub (itisbryan)  | Añade directorios externos a la sesión cargando su AGENTS.md y skills.                                |
 
