@@ -2,8 +2,7 @@
  * Desktop Notification Extension
  *
  * Sends a native desktop notification when the agent finishes and is waiting for input.
- * Uses `notify-send` on Linux. On macOS prefers `terminal-notifier` when it is
- * installed and falls back to `osascript`.
+ * Uses `notify-send` on Linux and `osascript` on macOS.
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
@@ -28,23 +27,8 @@ const notify = (title: string, body: string): void => {
 	};
 
 	if (process.platform === "darwin") {
-		// terminal-notifier registers as its own app, so macOS lets it be allowed
-		// and styled per app. osascript notifications are attributed to Script
-		// Editor and get delivered silently in recent macOS versions.
-		execFile("terminal-notifier", ["-title", title, "-message", body], (error) => {
-			if (!error) {
-				return;
-			}
-
-			if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-				onError(error);
-				return;
-			}
-
-			// Not installed: fall back to AppleScript.
-			const script = `display notification "${escapeAppleScript(body)}" with title "${escapeAppleScript(title)}"`;
-			execFile("osascript", ["-e", script], onError);
-		});
+		const script = `display notification "${escapeAppleScript(body)}" with title "${escapeAppleScript(title)}"`;
+		execFile("osascript", ["-e", script], onError);
 		return;
 	}
 

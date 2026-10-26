@@ -26,10 +26,6 @@ cd ~/.pi/agent && git config core.hooksPath .githooks
 # 5. Install the packages declared in settings.json
 pi update --extensions
 
-# 5b. macOS only: notifications. Without this, pi falls back to osascript, which
-# recent macOS versions deliver silently. Recommended on any Mac.
-brew install terminal-notifier
-
 # 6. Credentials: run /login inside pi, one per provider you use
 pi          # then /login anthropic, /login openrouter, ...
 ```
@@ -120,7 +116,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 
 | Extensión                                                | Comando(s)     | ¿Qué hace?                                                                                       |
 | -------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
-| [**notify**](extensions/notify.ts)                       | _(automático)_ | Notificaciones de escritorio cuando el agente completa un turno: `notify-send` en Linux, `terminal-notifier` en macOS (con `osascript` de reserva). |
+| [**notify**](extensions/notify.ts)                       | _(automático)_ | Notificaciones de escritorio (`notify-send`) cuando el agente completa un turno.                 |
 | [**herdr-agent-state**](extensions/herdr-agent-state.ts) | _(automático)_ | Reporta el estado de pi (working/blocked/idle) a herdr vía unix socket para seguimiento en pane. |
 
 #### Sistema del agente
