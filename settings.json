@@ -159,10 +159,10 @@
           "model": "claude-bridge/claude-sonnet-5-5"
         },
         "reviewer": {
-          "model": "claude-bridge/claude-opus-5"
+          "model": "claude-bridge/claude-fable-5"
         },
         "oracle": {
-          "model": "claude-bridge/claude-opus-5"
+          "model": "claude-bridge/claude-fable-5"
         }
       }
     }
