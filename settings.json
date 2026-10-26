@@ -134,6 +134,39 @@
   "defaultProvider": "opencode-go-console",
   "defaultModel": "deepseek-v4.1-flash",
   "defaultThinkingLevel": "high",
+  "subagents": {
+    "agentOverridesByProvider": {
+      "claude-bridge": {
+        "scout": {
+          "model": "claude-bridge/claude-haiku-5-5"
+        },
+        "librarian": {
+          "model": "claude-bridge/claude-haiku-5-5"
+        },
+        "diff-summarizer": {
+          "model": "claude-bridge/claude-haiku-5-5"
+        },
+        "researcher": {
+          "model": "claude-bridge/claude-sonnet-5"
+        },
+        "visual-tester": {
+          "model": "claude-bridge/claude-sonnet-5"
+        },
+        "visual-gui-tester": {
+          "model": "claude-bridge/claude-sonnet-5"
+        },
+        "worker": {
+          "model": "claude-bridge/claude-sonnet-5-5"
+        },
+        "reviewer": {
+          "model": "claude-bridge/claude-opus-5"
+        },
+        "oracle": {
+          "model": "claude-bridge/claude-opus-5"
+        }
+      }
+    }
+  },
   "defaultTools": [
     "+codemode"
   ],
