@@ -9,19 +9,24 @@ Clone this repo directly to `~/.pi/agent/` — pi auto-discovers everything from
 ### Fresh machine
 
 ```bash
-# 1. Install pi (https://github.com/badlogic/pi)
+# 1. Install pi, plus gh (for the private skills repo) and gitleaks (commit hook)
 
-# 2. Clone this repo as your agent config
+# 2. Clone config and shared skills
 mkdir -p ~/.pi
 git clone git@github.com:pcaro/pcaropi ~/.pi/agent
+git clone git@github.com:pcaro/agent-skills ~/.agents
 
-# 3. Run setup (installs packages + extension deps)
-cd ~/.pi/agent && ./setup.sh
+# 3. Enable the commit hook — core.hooksPath is local git config, it does not clone
+cd ~/.pi/agent && git config core.hooksPath .githooks
 
-# 4. Add your API keys to ~/.pi/agent/auth.json
+# 4. Install the packages declared in settings.json
+pi update --extensions
 
-# 5. Restart pi
+# 5. Credentials: run /login inside pi, one per provider you use
+pi          # then /login anthropic, /login openrouter, ...
 ```
+
+`mcp.json` is machine-local and is not cloned; recreate it as described in [MCP servers](#mcp-servers).
 
 ### Updating
 
