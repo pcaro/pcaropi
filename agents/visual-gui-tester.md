@@ -2,7 +2,6 @@
 name: visual-gui-tester
 description: Visual GUI tester for desktop apps on KDE/Wayland — screenshots via spectacle, vision analysis, interacts via D-Bus/clipboard/dotool, produces structured reports
 tools: bash, read, write
-model: opencode-go/glm-5.3-flash
 thinking: low
 output: .pi/visual-gui-test-report.md
 ---

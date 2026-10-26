@@ -2,7 +2,6 @@
 name: oracle
 description: Provides read-only high-reasoning second opinions using the oracle extension tool.
 tools: oracle, read, grep, find, ls, contact_supervisor, bash
-model: openrouter/anthropic/claude-opus-4.7
 thinking: high
 systemPromptMode: replace
 inheritProjectContext: true

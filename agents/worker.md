@@ -2,7 +2,6 @@
 name: worker
 description: Implements tasks from todos - writes code, runs tests, commits with polished messages
 tools: read, write, edit, grep, find, ls, bash, contact_supervisor
-model: deepseek/deepseek-v4-pro
 # off, minimal, low, medium, high, xhigh
 thinking: high
 skill: commit

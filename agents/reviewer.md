@@ -2,7 +2,6 @@
 name: reviewer
 description: Reviews diffs against assigned tasks for correctness, security, and maintainability.
 tools: read, grep, find, ls, bash, contact_supervisor
-model: opencode-go/kimi-k2.7-code
 thinking: high
 systemPromptMode: replace
 inheritProjectContext: true

@@ -164,6 +164,35 @@
         "oracle": {
           "model": "claude-bridge/claude-fable-5"
         }
+      },
+      "opencode-go-console": {
+        "scout": {
+          "model": "opencode-go/glm-5.3-flash"
+        },
+        "librarian": {
+          "model": "opencode-go/glm-5.3-flash"
+        },
+        "diff-summarizer": {
+          "model": "opencode-go/glm-5.3-flash"
+        },
+        "researcher": {
+          "model": "opencode-go/mimo-v2.6-pro"
+        },
+        "visual-tester": {
+          "model": "opencode-go/glm-5.3-flash"
+        },
+        "visual-gui-tester": {
+          "model": "opencode-go/glm-5.3-flash"
+        },
+        "worker": {
+          "model": "opencode-go/glm-5.3"
+        },
+        "reviewer": {
+          "model": "opencode-go/qwen3.8-max"
+        },
+        "oracle": {
+          "model": "opencode-go/kimi-k3.1-pro"
+        }
       }
     }
   },

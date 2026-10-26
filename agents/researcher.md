@@ -3,7 +3,6 @@ name: researcher
 description: Deep research using linkup tools for web search and content extraction
 tools: linkup_web_search, linkup_web_answer, linkup_web_fetch, write, bash
 thinking: high
-model: opencode-go/glm-5.3-flash
 output: research.md
 ---
 

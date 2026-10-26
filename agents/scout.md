@@ -2,7 +2,6 @@
 name: scout
 description: Fast codebase reconnaissance Scans a repository and reports stack, conventions, commands, and hotspots without making changes
 tools: read, grep, find, ls, bash, contact_supervisor
-model: opencode-go/deepseek-v4.1-flash
 thinking: high
 systemPromptMode: replace
 inheritProjectContext: true
