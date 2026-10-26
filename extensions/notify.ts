@@ -2,26 +2,37 @@
  * Desktop Notification Extension
  *
  * Sends a native desktop notification when the agent finishes and is waiting for input.
- * Uses `notify-send` on Linux.
+ * Uses `notify-send` on Linux and `osascript` on macOS.
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { Markdown, type MarkdownTheme } from "@mariozechner/pi-tui";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 
 /**
- * Send a desktop notification via notify-send.
+ * Escape a value for interpolation into an AppleScript string literal.
+ */
+const escapeAppleScript = (value: string): string =>
+	value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+
+/**
+ * Send a desktop notification with the platform's native tool.
+ * Arguments go in directly, without a shell, so no shell quoting is involved.
  */
 const notify = (title: string, body: string): void => {
-	// Escape single quotes for shell
-	const safeTitle = title.replace(/'/g, "'\\''");
-	const safeBody = body.replace(/'/g, "'\\''");
-	
-	exec(`notify-send '${safeTitle}' '${safeBody}'`, (error) => {
+	const onError = (error: Error | null): void => {
 		if (error) {
 			console.error(`Failed to send notification: ${error.message}`);
 		}
-	});
+	};
+
+	if (process.platform === "darwin") {
+		const script = `display notification "${escapeAppleScript(body)}" with title "${escapeAppleScript(title)}"`;
+		execFile("osascript", ["-e", script], onError);
+		return;
+	}
+
+	execFile("notify-send", [title, body], onError);
 };
 
 const isTextPart = (part: unknown): part is { type: "text"; text: string } =>
