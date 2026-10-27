@@ -206,6 +206,9 @@
   },
   "powerline": {
     "preset": "compact",
+    "model": {
+      "showThinkingLevel": true
+    },
     "customItems": [
       {
         "id": "ci",
