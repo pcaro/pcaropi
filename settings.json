@@ -249,6 +249,9 @@
     }
   },
   "enableInstallTelemetry": false,
+  "terminal": {
+    "showTerminalProgress": true
+  },
   "extensions": [
     "+extensions/usage/index.ts",
     "+extensions/uv-with-cwd.ts"
