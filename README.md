@@ -4,7 +4,7 @@ My personal pi configuration — agents, skills, extensions, and prompts that sh
 
 ## Setup
 
-Clone this repo directly to `~/.pi/agent/` — pi auto-discovers everything from there (extensions, skills, agents, AGENTS.md, mcp.json). No symlinks, no manual wiring.
+Clone this repo directly to `~/.pi/agent/` — pi auto-discovers everything from there (extensions, skills, agents, AGENTS.md, APPEND_SYSTEM.md, mcp.json). No symlinks, no manual wiring.
 
 ### Fresh machine
 
@@ -124,8 +124,6 @@ Todas las extensiones en `extensions/` se cargan automáticamente. `uv-with-cwd.
 | ------------------------------------------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | [**execute-command**](extensions/execute-command.ts)   | _(tool interno)_ | Registra `execute_command` para que el agente se auto-invoque comandos slash (`/answer`, `/reload`, etc.) o se envíe mensajes. |
 | [**get-current-time**](extensions/get-current-time.ts) | _(tool interno)_ | Registra `get_current_time` para que el agente consulte la fecha/hora actual.                                                  |
-| [**system-prompt**](extensions/system-prompt.ts)       | _(automático)_   | Añade guías de uso de herramientas al system prompt antes de cada turno del agente.                                            |
-| [**hooks**](extensions/hooks.ts)                       | _(wiring)_       | Punto de entrada único que registra los hooks de `system-prompt`.                                                              |
 | [**uv-with-cwd**](extensions/uv-with-cwd.ts)           | _(tool interno)_ | Reemplaza la tool `bash`: añade parámetro `cwd` e intercepta `python`/`pip`/`poetry` (vía `intercepted-commands/`) para forzar `uv`. |
 
 #### Métricas
