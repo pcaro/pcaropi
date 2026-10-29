@@ -230,15 +230,15 @@ Los servidores MCP nativos no son paquetes: los configurados hoy son `linkup` (a
 | [**@nikiforovall/pi-scratchpad**](https://github.com/NikiforovAll/scratchpad) | GitHub (NikiforovAll) | Scratchpad por sesión sobre el CLI `scratch`: skills `scratch` y `planning-with-scratchpad`, más `/scratch ui/export/stop` para el visor de solo lectura. |
 | [**@miclivs/pi-charts**](https://www.npmjs.com/package/@miclivs/pi-charts) | npm | Renderiza gráficos ECharts a PNG inline: tools `chart_schema` y `render_chart` (bar, line, pie, scatter, radar, funnel, gauge, treemap, boxplot, heatmap, candlestick, sankey). |
 
-## Tools
+## Scripts
 
-Scripts propios en `tools/`. Sin dependencias, ESM, solo builtins de `node:`.
+Scripts propios en `scripts/`. Sin dependencias, ESM, solo builtins de `node:`.
 
-| Tool         | Qué hace                                                       |
+| Script       | Qué hace                                                       |
 | ------------ | -------------------------------------------------------------- |
 | **pi-usage** | Coste, tokens y turnos de `sessions/` por proyecto, modelo y día. |
 
-Uso: `node tools/pi-usage/cli.js ~/.pi/agent/sessions --top 5`, con `--json` para datos crudos. Módulos `parse` → `aggregate` → `render` → `cli` con contratos congelados, y tests en `tools/pi-usage/tests/quickcheck.js`.
+Uso: `node scripts/pi-usage/cli.js ~/.pi/agent/sessions --top 5`, con `--json` para datos crudos. Módulos `parse` → `aggregate` → `render` → `cli` con contratos congelados, y tests en `scripts/pi-usage/tests/quickcheck.js`.
 
 Nota: los JSONL de origen traen correcciones de precio negativas (dos ficheros suman −$119k), así que el total puede salir negativo. Se propaga tal cual, no se recorta.
 
