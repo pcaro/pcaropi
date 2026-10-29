@@ -71,6 +71,8 @@ Only the skills shaped around pi's own tools live here. Everything agent-agnosti
 
 #### Quick Reference
 
+> Nota: estas skills viven en `~/.agents` (repo [`pcaro/agent-skills`](https://github.com/pcaro/agent-skills)), no en `skills/`.
+
 - **Python code**: Usar `uv` + `ruff` + `ty` siempre (gestor, linter, type checker)
 - **Commits**: Usar `commit` siempre antes de cualquier commit
 - **Demos**: Usar `show-me` para probar que el código funciona
@@ -89,7 +91,7 @@ Only the skills shaped around pi's own tools live here. Everything agent-agnosti
 
 ### Internas (auto-descubiertas de `extensions/`)
 
-Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-with-cwd.ts` que está excluida explícitamente en settings):
+Todas las extensiones en `extensions/` se cargan automáticamente. `uv-with-cwd.ts` se carga explícitamente vía settings porque reemplaza la tool `bash`:
 
 #### Sesión y contexto
 
@@ -116,7 +118,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 
 | Extensión                                                | Comando(s)     | ¿Qué hace?                                                                                       |
 | -------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
-| [**notify**](extensions/notify.ts)                       | _(automático)_ | Notificaciones de escritorio (`notify-send`) cuando el agente completa un turno.                 |
+| [**notify**](extensions/notify.ts)                       | _(automático)_ | Notificaciones de escritorio cuando el agente completa un turno: `notify-send` en Linux, `osascript` en macOS. |
 | [**herdr-agent-state**](extensions/herdr-agent-state.ts) | _(automático)_ | Reporta el estado de pi (working/blocked/idle) a herdr vía unix socket para seguimiento en pane. |
 
 #### Sistema del agente
@@ -127,6 +129,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 | [**get-current-time**](extensions/get-current-time.ts) | _(tool interno)_ | Registra `get_current_time` para que el agente consulte la fecha/hora actual.                                                  |
 | [**system-prompt**](extensions/system-prompt.ts)       | _(automático)_   | Añade guías de uso de herramientas al system prompt antes de cada turno del agente.                                            |
 | [**hooks**](extensions/hooks.ts)                       | _(wiring)_       | Punto de entrada único que registra los hooks de `system-prompt`.                                                              |
+| [**uv-with-cwd**](extensions/uv-with-cwd.ts)           | _(tool interno)_ | Reemplaza la tool `bash`: añade parámetro `cwd` e intercepta `python`/`pip`/`poetry` (vía `intercepted-commands/`) para forzar `uv`. |
 
 #### Métricas
 
@@ -180,7 +183,7 @@ Todas las extensiones en `extensions/` se cargan automáticamente (salvo `uv-wit
 
 #### MCP y conectividad externa
 
-Los servidores MCP nativos no son paquetes: el único configurado hoy es `linkup`, documentado en [MCP servers](#mcp-servers).
+Los servidores MCP nativos no son paquetes: los configurados hoy son `linkup` (activo, documentado en [MCP servers](#mcp-servers)) y `teams` (Teams MCP, deshabilitado).
 
 | Paquete                                                                                        | Repo                | ¿Qué hace?                                                                                            |
 | ---------------------------------------------------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------- |
@@ -214,6 +217,12 @@ Los servidores MCP nativos no son paquetes: el único configurado hoy es `linkup
 | [**@fyeeme/pi-session-name**](https://github.com/fyeeme/pi-packages)            | GitHub (fyeeme)          | Auto-nombra sesiones con IA (modos follow/first/auto), `/rename`, y nunca pisa un nombre puesto a mano. |
 | [**pi-claude-bridge**](https://github.com/elidickinson/pi-claude-bridge)          | GitHub (elidickinson)    | Puente a Claude Code (Agent SDK): modelos `claude-bridge/*` en `/model` y tool `AskClaude`.         |
 
+#### Proveedores y modelos
+
+| Paquete                                                                                        | Repo               | ¿Qué hace?                                                                                                                                                                            |
+| ---------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [**pi-provider-opencode-console**](https://github.com/grikomsn/pi-provider-opencode-console)   | GitHub (grikomsn)  | Proveedores `opencode-console` y `opencode-go-console` con login OAuth por device-code y descubrimiento de modelos por organización. Es el `defaultProvider` de esta config (`opencode-go-console`, modelo `deepseek-v4.1-flash`). |
+
 #### Utilidades
 
 | Paquete                                                                      | Repo                  | ¿Qué hace?                                                                                                                 |
@@ -226,15 +235,16 @@ Los servidores MCP nativos no son paquetes: el único configurado hoy es `linkup
 | [**@badliveware/pi-pr-upstream-status**](https://www.npmjs.com/package/@badliveware/pi-pr-upstream-status) | npm | Muestra el estado del PR upstream de la rama actual (abierto, mergeado, cerrado).                                            |
 | [**@mazli/pi-worktree**](https://github.com/HamdiMaz/Worktree)                   | GitHub (HamdiMaz)      | Crea y gestiona git worktrees desde Pi. `/worktree <rama>` abre una sesión aislada en `.worktrees/`, creando la rama y copiando recursos `.pi` automáticamente. |
 | [**@nikiforovall/pi-scratchpad**](https://github.com/NikiforovAll/scratchpad) | GitHub (NikiforovAll) | Scratchpad por sesión sobre el CLI `scratch`: skills `scratch` y `planning-with-scratchpad`, más `/scratch ui/export/stop` para el visor de solo lectura. |
+| [**@miclivs/pi-charts**](https://www.npmjs.com/package/@miclivs/pi-charts) | npm | Renderiza gráficos ECharts a PNG inline: tools `chart_schema` y `render_chart` (bar, line, pie, scatter, radar, funnel, gauge, treemap, boxplot, heatmap, candlestick, sankey). |
 
 ## Themes
 
-Custom themes located in `pi-themes/`.
+Custom themes located in `themes/` (currently `notte.json`).
 
 ## Commands
 
-Custom prompt templates located in `commands/`.
+Custom prompt templates located in `prompts/` (`conjetura`, `critica`, `listo`, `pr-arregla`, `pr-crea`, `revisa-sesion`).
 
 ---
 
-This config uses subagents (folder `agents`) using [pi-subagents](https://github.com/badlogic/pi-subagents).
+This config uses subagents (folder `agents/`) via [pi-subagents](https://github.com/nicobailon/pi-subagents), plus custom main-agent modes in `main-agents/` (`ask`, `design`, `fast`, `nico`, `plan`, `raw`).
