@@ -134,8 +134,6 @@ Todas las extensiones en `extensions/` se cargan automáticamente. `uv-with-cwd.
 | -------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | [**cost**](extensions/cost.ts)         | `/cost [días]` | Resumen de coste de API (por defecto 7 días) extrayendo datos de los archivos .jsonl de sesión.                             |
 | [**usage**](extensions/usage/)         | `/usage`       | Dashboard de estadísticas de uso. Cicla Hoy / Esta Semana / Todo el tiempo. Coste, tokens y mensajes por provider y modelo. |
-| [**ci-index**](extensions/ci-index.ts) | `/ci`          | Muestra el Coding Index (CI) de cualquier modelo según benchmarks de Artificial Analysis.                                   |
-|                                        | `/ci-top`      | Lista los mejores modelos de código por puntuación CI.                                                                      |
 
 #### Seguridad
 

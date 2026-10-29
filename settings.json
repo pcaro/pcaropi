@@ -211,14 +211,6 @@
     },
     "customItems": [
       {
-        "id": "ci",
-        "statusKey": "ci",
-        "position": "right",
-        "color": "success",
-        "hideWhenMissing": true,
-        "excludeFromExtensionStatuses": true
-      },
-      {
         "id": "watchdog",
         "statusKey": "watchdog",
         "position": "right",
