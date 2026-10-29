@@ -17,6 +17,7 @@ powerline-footer/
 # Pi runtime files (created when this repo is ~/.pi/agent/)
 git/
 intercom/
+workflows/
 mcp.json
 mcp-cache.json
 mcp-npx-cache.json
@@ -31,8 +32,8 @@ pi-cache-optimizer-stats.json
 howaboua-pi-stuff-changelog.json
 
 # Extension dependencies (install locally)
-pi-extensions/*/node_modules/
-pi-extensions/node_modules/
+extensions/*/node_modules/
+extensions/node_modules/
 skills/**/node_modules
 
 # Generated artifacts
