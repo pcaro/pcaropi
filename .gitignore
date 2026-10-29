@@ -17,7 +17,8 @@ powerline-footer/
 # Pi runtime files (created when this repo is ~/.pi/agent/)
 git/
 intercom/
-workflows/
+workflows/*
+!workflows/*.js
 mcp.json
 mcp-cache.json
 mcp-npx-cache.json

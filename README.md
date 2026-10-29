@@ -230,6 +230,38 @@ Los servidores MCP nativos no son paquetes: los configurados hoy son `linkup` (a
 | [**@nikiforovall/pi-scratchpad**](https://github.com/NikiforovAll/scratchpad) | GitHub (NikiforovAll) | Scratchpad por sesión sobre el CLI `scratch`: skills `scratch` y `planning-with-scratchpad`, más `/scratch ui/export/stop` para el visor de solo lectura. |
 | [**@miclivs/pi-charts**](https://www.npmjs.com/package/@miclivs/pi-charts) | npm | Renderiza gráficos ECharts a PNG inline: tools `chart_schema` y `render_chart` (bar, line, pie, scatter, radar, funnel, gauge, treemap, boxplot, heatmap, candlestick, sankey). |
 
+## Tools
+
+Scripts propios en `tools/`. Sin dependencias, ESM, solo builtins de `node:`.
+
+| Tool         | Qué hace                                                       |
+| ------------ | -------------------------------------------------------------- |
+| **pi-usage** | Coste, tokens y turnos de `sessions/` por proyecto, modelo y día. |
+
+Uso: `node tools/pi-usage/cli.js ~/.pi/agent/sessions --top 5`, con `--json` para datos crudos. Módulos `parse` → `aggregate` → `render` → `cli` con contratos congelados, y tests en `tools/pi-usage/tests/quickcheck.js`.
+
+Nota: los JSONL de origen traen correcciones de precio negativas (dos ficheros suman −$119k), así que el total puede salir negativo. Se propaga tal cual, no se recorta.
+
+## Workflows
+
+`workflows/wave.js` — runner de waves paralelas para [pi-subagents](https://github.com/nicobailon/pi-subagents): cola de listos sobre un task graph leído de un plan, un reintento por tarea con el error en el prompt, propagación de skips a los dependientes y review final fresco.
+
+```js
+subagent({
+  workflow: "./workflows/wave.js",
+  cwd: "/home/pcaro/.pi/agent",
+  args: {
+    plan: "~/.pi/history/<project>/plans/<plan>.md",
+    tasks: [{ id: "T1", agent: "worker", files: "ruta/a.js", deps: [] }],
+    review: { agent: "reviewer", model: "opencode/claude-haiku-5-5", timeoutMs: 180000 },
+  },
+})
+```
+
+Validar antes de lanzar: `subagent({ action: "validate", workflow: "./workflows/wave.js" })`.
+
+El hijo no recibe el texto de la tarea, solo la ruta del plan y su id: cada uno lee su bloque, y el plan es la fuente única. `model` y `timeoutMs` son pass-through — el script nunca elige modelo. Los `workflows/*.json` siguen siendo estado de runtime y no se versionan.
+
 ## Themes
 
 Custom themes located in `themes/` (currently `notte.json`).
