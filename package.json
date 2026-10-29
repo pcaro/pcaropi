@@ -1,37 +1,21 @@
 {
   "name": "pcaropi",
-  "version": "1.1.0",
-  "description": "Skills and extensions for Pi",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "description": "Personal pi configuration — agents, skills, extensions, and prompts",
   "type": "module",
-  "keywords": [
-    "pi-package",
-    "pi-extension",
-    "pi-skill",
-    "pi-theme"
-  ],
+  "author": "Pablo Caro",
+  "license": "ISC",
   "pi": {
     "extensions": [
-      "./pi-extensions"
+      "./extensions"
     ],
     "skills": [
       "./skills"
     ],
     "themes": [
-      "./pi-themes"
+      "./themes"
     ],
     "prompts": [
-      "./commands"
+      "./prompts"
     ]
-  },
-  "peerDependencies": {
-    "@mariozechner/pi-coding-agent": "*",
-    "@mariozechner/pi-ai": "*",
-    "@mariozechner/pi-tui": "*"
-  },
-  "author": "Pablo Caro",
-  "license": "ISC"
+  }
 }
