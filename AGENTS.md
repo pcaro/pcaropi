@@ -279,7 +279,6 @@ Skills provide specialized instructions for specific tasks. Load them when the c
 | Asked to simplify/clean up/refactor code | `code-simplifier` |
 | Writing or working with **Python code** | **`uv`, `ty`, `ruff`** (all three, always) |
 | Reading, reviewing, or analyzing a pi session JSONL file | `session-reader` |
-| Adding or configuring an MCP server (global or project-local) | `add-mcp-server` |
 | Running dev servers, test watchers, background tasks, or any process| Use `process` tool |
 
 **The `commit` skill is mandatory for every single commit.** No quick `git commit -m "fix stuff"` 

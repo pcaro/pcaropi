@@ -63,8 +63,6 @@ Only the skills shaped around pi's own tools live here. Everything agent-agnosti
 
 | Skill                                   | When to use                                                                                         | Tools / Scripts                                           |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| **add-mcp-server**                      | Añadir servidores MCP (globales o por proyecto)                                                     | `~/.pi/agent/mcp.json`                                    |
-| **brainstorm**                          | Brainstorming estructurado: investigar → clarificar → explorar → validar → planear → crear TODOs    | ask_user, write                                           |
 | **linkup-mcp**                          | Llamar a Linkup vía MCP: nombres con guiones bajos, shape de respuesta, codemode para no reventar contexto, cuándo caer al REST | `linkup_search`, `linkup_fetch`, `linkup_research`        |
 | **session-reader**                      | Leer y analizar archivos .jsonl de sesiones de pi                                                   | bash, read                                                |
 | **subagent-delegation**                 | Decidir cuándo delegar trabajo acotado a subagentes y qué modelo usar (downshift/upshift)           | `pi --list-models`, `subagent`, `TaskExecute`             |
@@ -82,7 +80,6 @@ Only the skills shaped around pi's own tools live here. Everything agent-agnosti
 - **Google Workspace**: Usar `google-workspace` para Drive/Docs/Calendar
 - **Planificación**: Usar `brainstorm` antes de cambios grandes
 - **Frontend**: Usar `frontend-design` para componentes web/interfaces
-- **MCP**: Usar `add-mcp-server` para configurar servidores MCP
 - **Código nuevo**: Usar `learn-codebase` para explorar proyectos desconocidos
 - **Refactor**: Usar `code-simplifier` para limpiar y simplificar código
 - **Presentaciones**: Usar `presentation-creator` para slides con datos
