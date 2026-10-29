@@ -2,5 +2,6 @@
   "app.message.followUp": [
     "alt+enter",
     "ctrl+j"
-  ]
+  ],
+  "app.session.tree": "alt+shift+e"
 }

@@ -111,7 +111,6 @@
       ]
     },
     "npm:@diegopetrucci/pi-librarian",
-    "npm:pi-edit-session-in-place",
     {
       "source": "npm:pi-copy-user-message",
       "extensions": [
