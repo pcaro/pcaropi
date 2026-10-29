@@ -9,19 +9,13 @@
     },
     "npm:@aliou/pi-guardrails",
     {
-      "source": "npm:@tmustier/pi-tab-status",
-      "extensions": [
-        "+tab-status.ts"
-      ]
-    },
-    {
       "source": "npm:@tmustier/pi-code-actions",
       "extensions": [
         "-index.ts"
       ]
     },
     {
-      "source": "git:github.com/pasky/chrome-cdp-skill@v1.0.1",
+      "source": "git:github.com/pasky/chrome-cdp-skill",
       "skills": [
         "-skills/chrome-cdp/SKILL.md"
       ]
@@ -29,18 +23,11 @@
     "npm:@aliou/pi-processes",
     "npm:pi-prompt-template-model",
     {
-      "source": "https://github.com/omaclaren/pi-markdown-preview",
-      "extensions": [
-        "-index.ts"
-      ]
-    },
-    {
       "source": "git:github.com/Whamp/pi-token-burden",
       "extensions": [
         "-src/index.ts"
       ]
     },
-    "git:github.com/omerxx/pi-head",
     "https://github.com/itisbryan/pi-add-dir",
     {
       "source": "npm:pi-subagents",
@@ -70,25 +57,7 @@
         "-skills/lsp-navigation/SKILL.md"
       ]
     },
-    {
-      "source": "npm:pi-schedule-prompt",
-      "extensions": [
-        "-src/index.ts"
-      ]
-    },
     "npm:pi-ask-user",
-    {
-      "source": "npm:@ogulcancelik/pi-sketch",
-      "extensions": [
-        "-extensions/index.ts"
-      ]
-    },
-    {
-      "source": "npm:@matheusbbarni/pi-stitch-mcp",
-      "extensions": [
-        "-index.ts"
-      ]
-    },
     "npm:pi-inspect",
     "npm:pi-slim",
     {
@@ -111,17 +80,8 @@
       ]
     },
     "npm:@diegopetrucci/pi-librarian",
-    {
-      "source": "npm:pi-copy-user-message",
-      "extensions": [
-        "-extensions/copy-user-message.ts"
-      ]
-    },
     "npm:pi-codex-goal",
-    "npm:@badliveware/pi-pr-upstream-status",
-    "npm:@miclivs/pi-charts",
     "npm:pi-context-prune",
-    "npm:@mazli/pi-worktree",
     "npm:@howaboua/pi-auto-trees",
     "git:github.com/DietrichGebert/ponytail",
     "npm:@nikiforovall/pi-scratchpad",
