@@ -42,7 +42,9 @@ Phase 4: Present & Validate Design
     ↓
 Phase 5: Write Plan
     ↓
-Phase 6: Create Todos
+Phase 6: Create Todos (contracts, execution edges, 2-6 min band)
+    ↓
+Phase 6.2: Plan Lint (examples, edges, sizes)
     ↓
 Phase 6.5: Create Feature Branch
     ↓
@@ -62,6 +64,7 @@ If you're about to edit or create source files, STOP and check:
 1. ✅ Did you complete Phase 4 (design validation)?
 2. ✅ Did you write a plan to `~/.pi/history/<project>/plans/`?
 3. ✅ Did you create todos?
+4. ✅ Did you run plan lint (Phase 6.2)?
 
 If any answer is NO and the user didn't explicitly skip → you're cutting corners. Go back.
 
@@ -248,6 +251,14 @@ By this point, the design has been explored, validated, and refined through Phas
 
 [Structure, components, how pieces fit together]
 
+### Interfaces
+
+Every boundary that more than one todo touches, with its exact contract and 2-3 concrete examples:
+
+- `parse(tokens: Token[]): Node` — `e.g. parse([Num(1), Plus, Num(2)]) -> Binary("+", Num(1), Num(2))`
+- `loadConfig(path: string): Config` — `e.g. loadConfig("a.toml") -> Config({port: 8080, debug: false})`
+- `POST /render` accepts `{template, ctx}`, returns `{html, warnings}` — `e.g. {template: "a", ctx: {}} -> {html: "<p>a</p>", warnings: []}`
+
 ## Dependencies
 
 - Libraries needed
@@ -258,6 +269,10 @@ By this point, the design has been explored, validated, and refined through Phas
 - Risk 1
 - Open question 1
 ```
+
+### The examples are the contract
+
+The `e.g.` line is the single source of truth for an interface, and it has two uses: the **consumer** builds its fake and its assumptions from it, and the **producer** asserts it in its tests. Same line, both sides, no drift. If you cannot write a concrete `e.g.` line for a boundary, the boundary is not designed yet — that is a missing decision, not a formatting gap.
 
 After writing, briefly confirm:
 > "Plan is written. Ready to create the todos, or anything you want to adjust?"
@@ -271,6 +286,8 @@ After the plan is verified, break it into todos.
 ### Make Todos Bite-Sized
 
 Each todo = **one focused action** (2-5 minutes).
+
+Add an `Est. context` line to each one: the lines it writes, the lines it reads, plus what briefing a worker costs (roughly 10-20k tokens of prompt, tools and conventions). The band is 2 to 6 minutes of real work. Over: it is two todos from the start, not one todo that fails. Under, where the work is smaller than the briefing itself: merge it into a neighbour.
 
 ❌ Too big: "Implement authentication system"
 
@@ -297,6 +314,7 @@ todo(action: "create", title: "Task 1: [description]", tags: ["plan-name"], body
 **Todo body includes:**
 ```markdown
 Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-plan-name.md
+**Est. context:** ~Nk
 
 ## Task
 [What needs to be done]
@@ -313,8 +331,30 @@ Plan: ~/.pi/history/<project>/plans/YYYY-MM-DD-plan-name.md
 - [ ] Criterion 2
 
 ## Depends On
-- Task X must be complete first (if applicable)
+- Task X (only if this todo's tests run Task X's code — see the edge rule below)
+
+## Interfaces
+- Produces: `name(sig): Type` — `e.g. call -> result`
+- Consumes: `name(sig): Type` — `e.g. call -> result`
 ```
+
+---
+
+### Dependencies Are Execution Edges
+
+An edge exists for one reason: this todo's tests run that todo's code. Not "same file", not "same feature", not "touches the same interface". A dependency a stub or a contract example satisfies is not an edge — if the plan gives the interface an `e.g.` line, the consumer builds against the example and runs in parallel with the producer.
+
+Serializing on soft dependencies is the most common way a plan that could run in waves ends up running in a chain.
+
+### Plan Lint
+
+Before creating the branch, run these three checks on what you just wrote. They take a minute, they are mechanical, and they catch the defects that surface later as agent confusion.
+
+1. **Every consumed interface has an `e.g.` line.** No example means the consumer's fake and the producer's tests will disagree, and nobody will notice until integration.
+2. **Every `Depends On` is an execution edge.** Does this todo's tests run that todo's code? If the honest answer is "it just needs the same names", delete the edge.
+3. **Every todo is in the 2-6 minute band.** Over: split. Under, where the work is smaller than the briefing: merge.
+
+Fix what you find in place. Report it in one line ("plan lint: dropped 2 soft edges, added 1 example") — no review loop, no subagent.
 
 ---
 
@@ -343,7 +383,7 @@ Keep the name short and descriptive (e.g., `feat/jwt-auth`, `fix/null-response`,
 ### The Pattern
 
 1. **Run scout first** — gathers context about all files relevant to the plan, writes `context.md`
-2. **Run worker for each todo** — one at a time, each referencing the scout's context
+2. **Run worker for each todo** — one at a time, each referencing the scout's context and the `e.g.` contract lines for the interfaces it produces or consumes (copy them into the prompt: the worker must not invent an interface the plan already fixed)
 3. **Check results** — verify files were created/modified correctly
 4. **Handle failures** — if a worker fails, diagnose and retry or fix manually
 5. **Run reviewer last** — only after all todos are complete
