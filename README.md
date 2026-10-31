@@ -79,6 +79,7 @@ Only the skills shaped around pi's own tools live here. Everything agent-agnosti
 - **Web**: Use `web-browser` for browser automation
 - **Google Workspace**: Use `google-workspace` for Drive/Docs/Calendar
 - **Planning**: Use `/brain2wave` (Brain2Wave: idea → plan → branch → code with subagents) before large changes; it loads the `brainstorm` skill
+- **Reminders**: Use `update-reminders` to edit the reminder-card texts in `extensions/reminder-card/cards.md`
 - **Frontend**: Use `frontend-design` for web components/interfaces
 - **New code**: Use `learn-codebase` to explore unfamiliar projects
 - **Refactor**: Use `code-simplifier` to clean up and simplify code
@@ -102,6 +103,7 @@ Every extension in `extensions/` loads automatically. `uv-with-cwd.ts` is loaded
 | [**handoff**](extensions/handoff.ts)                     | `/handoff`           | Transfers context to a new session: the LLM extracts decisions, files and key findings to generate a starting prompt.         |
 | [**answer**](extensions/answer.ts)                       | `/answer`            | Interactive Q&A. Extracts questions from the assistant message and answers them one by one via native UI (`Ctrl+.`).          |
 | [**structured-prompt**](extensions/structured-prompt/)   | `/prompt`<br>`Ctrl+Alt+P` | Structured form to compose prompts in sections (Goal, Task, Context, Criteria, Constraints, Work order). Copied from [n-r-w/pi-agent-suite](https://github.com/n-r-w/pi-agent-suite). |
+| [**reminder-card**](extensions/reminder-card/)           | `/remind`            | Shows one random card from seven at session start (fresh interactive sessions, zero LLM context); `/remind` re-shows one.     |
 
 #### Code and files
 
