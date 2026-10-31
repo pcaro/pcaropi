@@ -53,6 +53,11 @@ export default function reminderCardExtension(pi: ExtensionAPI) {
 		try {
 			if (!ctx.hasUI) return;
 			if (event.reason !== "startup" && event.reason !== "new") return;
+			// A continued process start (`pi -c`, `--session`, `--resume`) also
+			// reports reason "startup"; only a session with no messages yet
+			// counts as fresh. "new" always shows the card, messages or not.
+			const isContinuation = ctx.sessionManager.getEntries().some((e) => e.type === "message");
+			if (event.reason === "startup" && isContinuation) return;
 			const cards = loadCards();
 			if (cards.length === 0) return;
 			appendCard(pi, cards[Math.floor(Math.random() * cards.length)]);
