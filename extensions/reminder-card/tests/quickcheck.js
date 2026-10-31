@@ -91,7 +91,7 @@ check(
 
 // --- renderCard geometry -------------------------------------------------------
 
-for (const width of [24, 40, 80, 120]) {
+for (const width of [10, 24, 40, 80, 120]) {
   const boxWidth = Math.max(24, width);
   const bad = [];
   for (const card of cards) {
@@ -111,10 +111,24 @@ checkTrue(
   renderCard(cards[0], 80).every((l) => !l.includes("\x1b")),
 );
 
-const tagged = renderCard(cards[0], 80, (color, s) => `<${color}>${s}</>`).join("\n");
+const tag = (color, s) => `<${color}>${s}</>`;
+const tagged = renderCard(cards[0], 80, tag).join("\n");
 checkTrue("fg is applied: accent tokens present", tagged.includes("<accent>"));
 checkTrue("fg is applied: text runs present", tagged.includes("<text>"));
 checkTrue("fg is applied: dim box and footer present", tagged.includes("<dim>"));
+
+// The three checks above pass even if TOKEN_RE never matches (the title is
+// always accent, the body fallback is always text), so assert on rendered
+// BODY lines that carry real tokens: a bare /command and a `backticked` tool.
+checkTrue(
+  "body command token is accent-wrapped: /brain2wave",
+  tagged.includes("<accent>/brain2wave</>"),
+);
+const tagged2 = renderCard(cards[1], 80, tag).join("\n");
+checkTrue(
+  "body backticked token is accent-wrapped: `subagent`",
+  tagged2.includes("<accent>`subagent`</>"),
+);
 
 // --- overlong word ---------------------------------------------------------------
 
@@ -122,6 +136,10 @@ const hardSplit = renderCard({ index: 1, title: "T", lines: ["x".repeat(60)] }, 
 checkTrue(
   "60-char unbreakable word at width 40 keeps every line at 40 visible chars",
   hardSplit.every((l) => l.length === 40),
+);
+checkTrue(
+  "hard split loses no content: all 60 x chars recovered from the box",
+  hardSplit.reduce((n, l) => n + (l.match(/x/g)?.length ?? 0), 0) === 60,
 );
 
 // --- evidence: card 1 rendered at 80 cols ----------------------------------------

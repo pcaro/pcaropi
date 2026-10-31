@@ -8,7 +8,9 @@
  */
 
 export type Card = { index: number; title: string; lines: string[] };
-export type Fg = (color: string, s: string) => string;
+/** The only colors renderCard/colorBodyLine ever request from `fg`. */
+export type CardColor = "accent" | "text" | "dim";
+export type Fg = (color: CardColor, s: string) => string;
 
 /** Narrower render requests are clamped up to this before subtracting the box padding. */
 const MIN_WIDTH = 24;
