@@ -13,7 +13,7 @@
  */
 
 import type { AgentMessage } from "@earendil-works/pi-agent-core";
-import { complete, type Message } from "@earendil-works/pi-ai";
+import { type Message, uuidv7 } from "@earendil-works/pi-ai";
 import type {
 	ExtensionAPI,
 	SessionEntry,
@@ -137,15 +137,6 @@ export default function (pi: ExtensionAPI) {
 					loader.onAbort = () => done(null);
 
 					const doGenerate = async () => {
-						const auth = await ctx.modelRegistry.getApiKeyAndHeaders(
-							ctx.model!,
-						);
-						if (!auth.ok || !auth.apiKey) {
-							throw new Error(
-								auth.ok ? `No API key for ${ctx.model!.provider}` : auth.error,
-							);
-						}
-
 						const userMessage: Message = {
 							role: "user",
 							content: [
@@ -157,13 +148,13 @@ export default function (pi: ExtensionAPI) {
 							timestamp: Date.now(),
 						};
 
-						const response = await complete(
+						const response = await ctx.modelRegistry.complete(
 							ctx.model!,
 							{ systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
 							{
-								apiKey: auth.apiKey,
-								headers: auth.headers,
 								signal: loader.signal,
+								cacheRetention: "none",
+								sessionId: uuidv7(),
 							},
 						);
 
