@@ -25,6 +25,11 @@ import {
 	BorderedLoader,
 	prepareBranchEntries,
 } from "@mariozechner/pi-coding-agent";
+import {
+	candidateModels,
+	describeError,
+	modelLabel,
+} from "./lib/model-fallback.ts";
 
 interface ExtractedQuestion {
 	question: string;
@@ -86,9 +91,6 @@ Example output:
 /** Space kept free for the system prompt and the response. */
 const RESERVE_TOKENS = 16_384;
 
-/** Cap error text so a single failure cannot swallow the notification line. */
-const MAX_ERROR_CHARS = 120;
-
 type ExtractionAttempt =
 	| { status: "ok"; result: ExtractionResult; truncated: boolean }
 	| { status: "aborted" }
@@ -103,90 +105,6 @@ type ExtractionOutcome =
 	  }
 	| { status: "cancelled" }
 	| { status: "error"; message: string };
-
-/** One-line, stack-free, length-capped description of an error for UI display. */
-function describeError(err: unknown): string {
-	const raw = err instanceof Error ? err.message : String(err);
-	const firstLine = raw.split("\n")[0].trim();
-	if (firstLine.length === 0) {
-		return "request failed";
-	}
-	return firstLine.length > MAX_ERROR_CHARS
-		? `${firstLine.slice(0, MAX_ERROR_CHARS)}…`
-		: firstLine;
-}
-
-function modelLabel(model: Model<Api>): string {
-	return `${model.provider}/${model.id}`;
-}
-
-/** Ordered, de-duplicated model spec list from settings: `answer.models`. */
-function configuredModelSpecs(pi: ExtensionAPI): string[] {
-	const settings = pi.getSettings() as Record<string, unknown>;
-	const answer = settings.answer as { models?: unknown } | undefined;
-	const specs = answer?.models;
-	if (!Array.isArray(specs)) {
-		return [];
-	}
-	return specs
-		.filter((spec): spec is string => typeof spec === "string")
-		.map((spec) => spec.trim())
-		.filter((spec) => spec.length > 0);
-}
-
-/**
- * Resolve `provider/id`, or a bare id, to a model with credentials configured.
- * `getAvailable()` is auth-filtered; `find()` is not, so it is only trusted when
- * the provider itself is authenticated.
- */
-function resolveModel(
-	ctx: ExtensionContext,
-	spec: string,
-): Model<Api> | undefined {
-	const registry = ctx.modelRegistry;
-	const available = registry.getAvailable();
-
-	const slash = spec.indexOf("/");
-	if (slash > 0) {
-		const provider = spec.slice(0, slash);
-		const id = spec.slice(slash + 1);
-		const known = registry.find(provider, id);
-		return (
-			available.find((m) => m.provider === provider && m.id === id) ??
-			(known && registry.hasConfiguredAuth(known) ? known : undefined)
-		);
-	}
-
-	return (
-		available.find((m) => `${m.provider}/${m.id}` === spec) ??
-		available.find((m) => m.id === spec)
-	);
-}
-
-/** Candidate models: configured specs first, session model last. */
-function candidateModels(
-	pi: ExtensionAPI,
-	ctx: ExtensionContext,
-): Model<Api>[] {
-	const models: Model<Api>[] = [];
-	const push = (model: Model<Api> | undefined) => {
-		if (!model) {
-			return;
-		}
-		if (
-			!models.some((m) => m.provider === model.provider && m.id === model.id)
-		) {
-			models.push(model);
-		}
-	};
-
-	for (const spec of configuredModelSpecs(pi)) {
-		push(resolveModel(ctx, spec));
-	}
-	push(ctx.model);
-
-	return models;
-}
 
 /** Text of an assistant message, or "" when it carried no prose. */
 function textContent(content: unknown): string {
@@ -381,7 +299,7 @@ export default function (pi: ExtensionAPI) {
 			return;
 		}
 
-		const models = candidateModels(pi, ctx);
+		const models = candidateModels(pi, ctx, "answer");
 		if (models.length === 0) {
 			ctx.ui.notify("No model available for question extraction", "error");
 			return;
