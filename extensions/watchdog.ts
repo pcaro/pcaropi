@@ -3,6 +3,11 @@ import type {
   ExtensionContext,
 } from "@mariozechner/pi-coding-agent";
 import { type AssistantMessage, type Message, uuidv7 } from "@mariozechner/pi-ai";
+import {
+  candidateModels,
+  describeError,
+  modelLabel,
+} from "./lib/model-fallback.ts";
 
 interface JudgeResult {
   action: "continue" | "nudge" | "abort";
@@ -12,9 +17,6 @@ interface JudgeResult {
 
 /** A hung judge must never block a watchdog tick. */
 const JUDGE_TIMEOUT_MS = 30_000;
-
-/** Cap error text so a single failure cannot swallow the notification line. */
-const MAX_ERROR_CHARS = 120;
 
 function formatSessionSummary(ctx: ExtensionContext): string {
   const entries: any[] = ctx.sessionManager.getBranch();
@@ -103,27 +105,6 @@ Also consider:
 Respond ONLY with valid JSON, no other text, no markdown fences:
 { "action": "continue" | "nudge" | "abort", "message": "explanation", "compact": true | false }`;
 
-/** One-line, stack-free, length-capped description of an error for UI display. */
-function describeError(err: unknown): string {
-  const raw = err instanceof Error ? err.message : String(err);
-  const firstLine = raw.split("\n")[0].trim();
-  if (firstLine.length === 0) {
-    return "request failed";
-  }
-  return firstLine.length > MAX_ERROR_CHARS
-    ? `${firstLine.slice(0, MAX_ERROR_CHARS)}…`
-    : firstLine;
-}
-
-/**
- * The session model is authenticated by definition (the session is running on
- * it), so it is the first choice. `getAvailable()` is auth-filtered, so the
- * fallback can never select a provider without credentials.
- */
-function judgeModel(ctx: ExtensionContext) {
-  return ctx.model ?? ctx.modelRegistry.getAvailable()[0];
-}
-
 function judgeUserText(
   summary: string,
   idleSecs: number,
@@ -165,22 +146,26 @@ type JudgeAttempt =
 
 /**
  * One request to the judge model, normalised into a result the tick can act on.
- * The request goes through the registry so provider routing and request-time
- * authentication apply, and it uses a throwaway session id so the judge never
- * shares cache state with the conversation it is judging.
+ * Candidates come from `watchdog.models`, then the session model, then the
+ * first other authenticated model — a judge that cannot answer is a judge that
+ * cannot intervene. Requests go through the registry so provider routing and
+ * request-time authentication apply, and each uses a throwaway session id so
+ * judging never shares cache state with the conversation it is judging.
  */
 async function callJudge(
+  pi: ExtensionAPI,
   ctx: ExtensionContext,
   summary: string,
   timeSinceActivityMs: number,
   consecutiveInterventions: number
 ): Promise<JudgeAttempt> {
-  const model = judgeModel(ctx);
-  if (!model) {
+  const models = candidateModels(pi, ctx, "watchdog", {
+    includeAnyAvailable: true,
+  });
+  if (models.length === 0) {
     return { status: "failed", failure: "no model available" };
   }
 
-  const label = `${model.provider}/${model.id}`;
   const userMessage: Message = {
     role: "user",
     content: [
@@ -196,43 +181,54 @@ async function callJudge(
     timestamp: Date.now(),
   };
 
-  let response: AssistantMessage;
-  try {
-    response = await ctx.modelRegistry.complete(
-      model,
-      { systemPrompt: JUDGE_SYSTEM_PROMPT, messages: [userMessage] },
-      {
-        signal: AbortSignal.timeout(JUDGE_TIMEOUT_MS),
-        cacheRetention: "none",
-        sessionId: uuidv7(),
-      }
-    );
-  } catch (err) {
-    return { status: "failed", failure: `${label}: ${describeError(err)}` };
+  const failures: string[] = [];
+
+  for (const model of models) {
+    const label = modelLabel(model);
+
+    let response: AssistantMessage;
+    try {
+      response = await ctx.modelRegistry.complete(
+        model,
+        { systemPrompt: JUDGE_SYSTEM_PROMPT, messages: [userMessage] },
+        {
+          signal: AbortSignal.timeout(JUDGE_TIMEOUT_MS),
+          cacheRetention: "none",
+          sessionId: uuidv7(),
+        }
+      );
+    } catch (err) {
+      failures.push(`${label}: ${describeError(err)}`);
+      continue;
+    }
+
+    if (response.stopReason === "aborted") {
+      failures.push(`${label}: request timed out`);
+      continue;
+    }
+
+    if (response.stopReason === "error") {
+      failures.push(
+        `${label}: ${describeError(response.errorMessage ?? "request failed")}`
+      );
+      continue;
+    }
+
+    const text = response.content
+      .filter((c): c is { type: "text"; text: string } => c.type === "text")
+      .map((c) => c.text)
+      .join("\n");
+
+    const result = parseJudge(text);
+    if (!result) {
+      failures.push(`${label}: unparsable verdict`);
+      continue;
+    }
+
+    return { status: "ok", result };
   }
 
-  if (response.stopReason === "aborted") {
-    return { status: "failed", failure: `${label}: request timed out` };
-  }
-
-  if (response.stopReason === "error") {
-    return {
-      status: "failed",
-      failure: `${label}: ${describeError(response.errorMessage ?? "request failed")}`,
-    };
-  }
-
-  const text = response.content
-    .filter((c): c is { type: "text"; text: string } => c.type === "text")
-    .map((c) => c.text)
-    .join("\n");
-
-  const result = parseJudge(text);
-  if (!result) {
-    return { status: "failed", failure: `${label}: unparsable verdict` };
-  }
-
-  return { status: "ok", result };
+  return { status: "failed", failure: failures.join(" | ") };
 }
 
 export default function (pi: ExtensionAPI) {
@@ -309,6 +305,7 @@ export default function (pi: ExtensionAPI) {
 
         const summary = formatSessionSummary(ctx);
         const judged = await callJudge(
+          pi,
           ctx,
           summary,
           timeSinceActivity,
@@ -350,9 +347,10 @@ export default function (pi: ExtensionAPI) {
             ctx.compact();
           }
         }
-      } catch {
-        // Swallow errors from abort/sendUserMessage — the watchdog should never
-        // crash the session. If intervention fails, we'll try again next tick.
+      } catch (err) {
+        // The watchdog must never crash the session, but a swallowed throw here
+        // would look exactly like a healthy agent — surface it instead.
+        reportJudgeFailure(describeError(err));
       } finally {
         judgeInProgress = false;
       }
