@@ -10,12 +10,22 @@
  *   /handoff check other places that need this fix
  *
  * The generated prompt appears as a draft in the editor for review/editing.
+ *
+ * Models: the current session model is used by default. To pin a primary
+ * model plus fallbacks, add to settings.json:
+ *
+ *   "handoff": { "models": ["opencode-go/deepseek-v4.1-flash", "claude-bridge/claude-sonnet-5"] }
+ *
+ * Candidates are tried in order; unmatched or unauthenticated specs are
+ * skipped, and the session model is always the last resort.
  */
 
 import type { AgentMessage } from "@earendil-works/pi-agent-core";
+import type { Api, Model } from "@earendil-works/pi-ai";
 import { type Message, uuidv7 } from "@earendil-works/pi-ai";
 import type {
 	ExtensionAPI,
+	ExtensionCommandContext,
 	SessionEntry,
 } from "@earendil-works/pi-coding-agent";
 import {
@@ -45,6 +55,11 @@ Files involved:
 
 ## Task
 [Clear description of what to do next based on user's goal]`;
+
+type GenerationResult =
+	| { status: "ok"; text: string; modelLabel: string }
+	| { status: "cancelled" }
+	| { status: "error"; message: string };
 
 function entryToMessage(entry: SessionEntry): AgentMessage | undefined {
 	if (entry.type === "message") {
@@ -92,6 +107,82 @@ function getHandoffMessages(branch: SessionEntry[]): AgentMessage[] {
 		.filter((message) => message !== undefined);
 }
 
+function modelLabel(model: Model<Api>): string {
+	return `${model.provider}/${model.id}`;
+}
+
+/** One-line, stack-free description of an error for UI display. */
+function describeError(err: unknown): string {
+	const raw = err instanceof Error ? err.message : String(err);
+	const firstLine = raw.split("\n")[0].trim();
+	return firstLine.length > 0 ? firstLine : "request failed";
+}
+
+/** Ordered, de-duplicated model spec list from settings: `handoff.models`. */
+function configuredModelSpecs(pi: ExtensionAPI): string[] {
+	const settings = pi.getSettings() as Record<string, unknown>;
+	const handoff = settings.handoff as { models?: unknown } | undefined;
+	const specs = handoff?.models;
+	if (!Array.isArray(specs)) {
+		return [];
+	}
+	return specs
+		.filter((spec): spec is string => typeof spec === "string")
+		.map((spec) => spec.trim())
+		.filter((spec) => spec.length > 0);
+}
+
+/** Resolve `provider/id`, or a bare id against the authenticated catalogue. */
+function resolveModel(
+	ctx: ExtensionCommandContext,
+	spec: string,
+): Model<Api> | undefined {
+	const registry = ctx.modelRegistry;
+	const available = registry.getAvailable();
+
+	const slash = spec.indexOf("/");
+	if (slash > 0) {
+		const provider = spec.slice(0, slash);
+		const id = spec.slice(slash + 1);
+		const exact =
+			registry.find(provider, id) ??
+			available.find((m) => m.provider === provider && m.id === id);
+		if (exact) {
+			return exact;
+		}
+	}
+
+	return (
+		available.find((m) => `${m.provider}/${m.id}` === spec) ??
+		available.find((m) => m.id === spec)
+	);
+}
+
+/** Candidate models: configured specs first, session model last. */
+function candidateModels(
+	pi: ExtensionAPI,
+	ctx: ExtensionCommandContext,
+): Model<Api>[] {
+	const models: Model<Api>[] = [];
+	const push = (model: Model<Api> | undefined) => {
+		if (!model) {
+			return;
+		}
+		if (
+			!models.some((m) => m.provider === model.provider && m.id === model.id)
+		) {
+			models.push(model);
+		}
+	};
+
+	for (const spec of configuredModelSpecs(pi)) {
+		push(resolveModel(ctx, spec));
+	}
+	push(ctx.model);
+
+	return models;
+}
+
 export default function (pi: ExtensionAPI) {
 	pi.registerCommand("handoff", {
 		description: "Transfer context to a new focused session",
@@ -101,14 +192,15 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
-			if (!ctx.model) {
-				ctx.ui.notify("No model selected", "error");
-				return;
-			}
-
 			const goal = args.trim();
 			if (!goal) {
 				ctx.ui.notify("Usage: /handoff <goal for new thread>", "error");
+				return;
+			}
+
+			const models = candidateModels(pi, ctx);
+			if (models.length === 0) {
+				ctx.ui.notify("No model selected", "error");
 				return;
 			}
 
@@ -122,72 +214,131 @@ export default function (pi: ExtensionAPI) {
 			}
 
 			// Convert to LLM format and serialize
-			const llmMessages = convertToLlm(messages);
-			const conversationText = serializeConversation(llmMessages);
+			let conversationText: string;
+			try {
+				const llmMessages = convertToLlm(messages);
+				conversationText = serializeConversation(llmMessages);
+			} catch (err) {
+				ctx.ui.notify(
+					`Handoff failed: could not read conversation (${describeError(err)})`,
+					"error",
+				);
+				return;
+			}
+
 			const currentSessionFile = ctx.sessionManager.getSessionFile();
 
 			// Generate the handoff prompt with loader UI
-			const result = await ctx.ui.custom<string | null>(
+			const result = await ctx.ui.custom<GenerationResult>(
 				(tui, theme, _kb, done) => {
 					const loader = new BorderedLoader(
 						tui,
 						theme,
 						`Generating handoff prompt...`,
 					);
-					loader.onAbort = () => done(null);
+					loader.onAbort = () => done({ status: "cancelled" });
 
-					const doGenerate = async () => {
-						const userMessage: Message = {
-							role: "user",
-							content: [
-								{
-									type: "text",
-									text: `## Conversation History\n\n${conversationText}\n\n## User's Goal for New Thread\n\n${goal}`,
-								},
-							],
-							timestamp: Date.now(),
-						};
-
-						const response = await ctx.modelRegistry.complete(
-							ctx.model!,
-							{ systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
+					const userMessage: Message = {
+						role: "user",
+						content: [
 							{
-								signal: loader.signal,
-								cacheRetention: "none",
-								sessionId: uuidv7(),
+								type: "text",
+								text: `## Conversation History\n\n${conversationText}\n\n## User's Goal for New Thread\n\n${goal}`,
 							},
-						);
+						],
+						timestamp: Date.now(),
+					};
 
-						if (response.stopReason === "aborted") {
-							return null;
+					const doGenerate = async (): Promise<GenerationResult> => {
+						const failures: string[] = [];
+
+						for (const model of models) {
+							if (loader.signal.aborted) {
+								return { status: "cancelled" };
+							}
+
+							let response;
+							try {
+								response = await ctx.modelRegistry.complete(
+									model,
+									{ systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
+									{
+										signal: loader.signal,
+										cacheRetention: "none",
+										sessionId: uuidv7(),
+									},
+								);
+							} catch (err) {
+								if (loader.signal.aborted) {
+									return { status: "cancelled" };
+								}
+								failures.push(
+									`${modelLabel(model)}: ${describeError(err)}`,
+								);
+								continue;
+							}
+
+							if (loader.signal.aborted || response.stopReason === "aborted") {
+								return { status: "cancelled" };
+							}
+
+							if (response.stopReason === "error") {
+								failures.push(
+									`${modelLabel(model)}: ${describeError(
+										response.errorMessage ?? "request failed",
+									)}`,
+								);
+								continue;
+							}
+
+							const text = response.content
+								.filter(
+									(c): c is { type: "text"; text: string } =>
+										c.type === "text",
+								)
+								.map((c) => c.text)
+								.join("\n")
+								.trim();
+
+							if (!text) {
+								failures.push(`${modelLabel(model)}: empty response`);
+								continue;
+							}
+
+							return { status: "ok", text, modelLabel: modelLabel(model) };
 						}
 
-						return response.content
-							.filter(
-								(c): c is { type: "text"; text: string } => c.type === "text",
-							)
-							.map((c) => c.text)
-							.join("\n");
+						return {
+							status: "error",
+							message:
+								failures.join(" | ") || "no usable model for handoff",
+						};
 					};
 
 					doGenerate()
 						.then(done)
-						.catch((err) => {
-							console.error("Handoff generation failed:", err);
-							done(null);
-						});
+						.catch(() => done({ status: "error", message: "generation failed" }));
 
 					return loader;
 				},
 			);
 
-			if (result === null) {
+			if (result.status === "cancelled") {
 				ctx.ui.notify("Cancelled", "info");
 				return;
 			}
 
+			if (result.status === "error") {
+				ctx.ui.notify(`Handoff failed — ${result.message}`, "error");
+				return;
+			}
+
+			if (result.modelLabel) {
+				ctx.ui.notify(`Handoff draft ready (${result.modelLabel})`, "info");
+			}
+
 			// Let user edit the generated prompt
-			const editedPrompt = await ctx.ui.editor("Edit handoff prompt", result);
+			const editedPrompt = await ctx.ui.editor("Edit handoff prompt", result.text);
 
 			if (editedPrompt === undefined) {
 				ctx.ui.notify("Cancelled", "info");
