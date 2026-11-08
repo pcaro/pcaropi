@@ -1,19 +1,30 @@
 /**
  * Q&A extraction fallback — extracts questions from assistant responses
  * and presents them via native UI dialogs when the model forgot to use ask_user.
+ *
+ * Models: the current session model is used by default. To pin a primary
+ * model plus fallbacks, add to settings.json:
+ *
+ *   "answer": { "models": ["opencode-go-console/deepseek-v4.1-flash", "openrouter/google/gemini-3.1-pro-preview"] }
+ *
+ * Candidates are tried in order; unmatched or unauthenticated specs are
+ * skipped, and the session model is always the last resort. The assistant
+ * messages are selected within pi's own token budget for the chosen model.
  */
 
-import {
-	type Api,
-	complete,
-	type Model,
-	type UserMessage,
-} from "@mariozechner/pi-ai";
+import type { Api, AssistantMessage, Message, Model } from "@mariozechner/pi-ai";
+import { uuidv7 } from "@mariozechner/pi-ai";
 import type {
+	BranchPreparation,
 	ExtensionAPI,
+	ExtensionCommandContext,
 	ExtensionContext,
+	SessionEntry,
 } from "@mariozechner/pi-coding-agent";
-import { BorderedLoader } from "@mariozechner/pi-coding-agent";
+import {
+	BorderedLoader,
+	prepareBranchEntries,
+} from "@mariozechner/pi-coding-agent";
 
 interface ExtractedQuestion {
 	question: string;
@@ -51,6 +62,7 @@ Rules:
 - If the question provides multiple choices, extract them into the "options" array
 - Use "multiSelect": true when the user can/should select multiple options
 - If no questions are found, return {"questions": []}
+- Output the JSON object only, no prose and no markdown fences
 
 Example output:
 {
@@ -71,61 +83,181 @@ Example output:
   ]
 }`;
 
-// Prefer cheaper/faster models for extraction
-const EXTRACTION_MODELS: [string, string][] = [
-	["opencode-go", "deepseek-v4-flash"],
-	["opencode-go", "minimax-m2.7"],
-	["openrouter", "opencode-go/deepseek-v4-flash"],
-	["openai-codex", "gpt-5.1-codex-mini"],
-	["anthropic", "claude-haiku-4-5"],
-	["google-gemini-cli", "gemini-2.0-flash"],
-];
+/** Space kept free for the system prompt and the response. */
+const RESERVE_TOKENS = 16_384;
 
-class NoExtractionModelError extends Error {
-	constructor() {
-		super(
-			"No extraction model available. " +
-				"Tried: " +
-				EXTRACTION_MODELS.map(([p, m]) => `${p}/${m}`).join(", ") +
-				". " +
-				"None found with a valid API key. " +
-				"Add one via PI_MODELS settings or ensure your provider config has API credentials for any of these models.",
-		);
-		this.name = "NoExtractionModelError";
+/** Cap error text so a single failure cannot swallow the notification line. */
+const MAX_ERROR_CHARS = 120;
+
+type ExtractionAttempt =
+	| { status: "ok"; result: ExtractionResult; truncated: boolean }
+	| { status: "aborted" }
+	| { status: "failed"; failure: string };
+
+type ExtractionOutcome =
+	| {
+			status: "ok";
+			questions: ExtractedQuestion[];
+			modelLabel: string;
+			truncated: boolean;
+	  }
+	| { status: "cancelled" }
+	| { status: "error"; message: string };
+
+/** One-line, stack-free, length-capped description of an error for UI display. */
+function describeError(err: unknown): string {
+	const raw = err instanceof Error ? err.message : String(err);
+	const firstLine = raw.split("\n")[0].trim();
+	if (firstLine.length === 0) {
+		return "request failed";
 	}
+	return firstLine.length > MAX_ERROR_CHARS
+		? `${firstLine.slice(0, MAX_ERROR_CHARS)}…`
+		: firstLine;
 }
 
-async function selectExtractionModel(
-	currentModel: Model<Api>,
-	modelRegistry: {
-		find: (provider: string, modelId: string) => Model<Api> | undefined;
-		getApiKeyAndHeaders: (model: Model<Api>) => Promise<{
-			ok: boolean;
-			apiKey?: string;
-			headers?: Record<string, string>;
-		}>;
-	},
-): Promise<Model<Api>> {
-	for (const [provider, modelId] of EXTRACTION_MODELS) {
-		const model = modelRegistry.find(provider, modelId);
-		if (model) {
-			const auth = await modelRegistry.getApiKeyAndHeaders(model);
-			if (auth.ok) {
-				console.log(`[answer] Using extraction model: ${provider}/${modelId}`);
-				return model;
-			}
-		}
+function modelLabel(model: Model<Api>): string {
+	return `${model.provider}/${model.id}`;
+}
+
+/** Ordered, de-duplicated model spec list from settings: `answer.models`. */
+function configuredModelSpecs(pi: ExtensionAPI): string[] {
+	const settings = pi.getSettings() as Record<string, unknown>;
+	const answer = settings.answer as { models?: unknown } | undefined;
+	const specs = answer?.models;
+	if (!Array.isArray(specs)) {
+		return [];
 	}
-	// Fallback: check if currentModel actually has credentials
-	const auth = await modelRegistry.getApiKeyAndHeaders(currentModel);
-	if (auth.ok) {
-		console.log(
-			`[answer] No preferred extraction model, using: ${currentModel.id}`,
+	return specs
+		.filter((spec): spec is string => typeof spec === "string")
+		.map((spec) => spec.trim())
+		.filter((spec) => spec.length > 0);
+}
+
+/**
+ * Resolve `provider/id`, or a bare id, to a model with credentials configured.
+ * `getAvailable()` is auth-filtered; `find()` is not, so it is only trusted when
+ * the provider itself is authenticated.
+ */
+function resolveModel(
+	ctx: ExtensionContext,
+	spec: string,
+): Model<Api> | undefined {
+	const registry = ctx.modelRegistry;
+	const available = registry.getAvailable();
+
+	const slash = spec.indexOf("/");
+	if (slash > 0) {
+		const provider = spec.slice(0, slash);
+		const id = spec.slice(slash + 1);
+		const known = registry.find(provider, id);
+		return (
+			available.find((m) => m.provider === provider && m.id === id) ??
+			(known && registry.hasConfiguredAuth(known) ? known : undefined)
 		);
-		return currentModel;
 	}
 
-	throw new NoExtractionModelError();
+	return (
+		available.find((m) => `${m.provider}/${m.id}` === spec) ??
+		available.find((m) => m.id === spec)
+	);
+}
+
+/** Candidate models: configured specs first, session model last. */
+function candidateModels(
+	pi: ExtensionAPI,
+	ctx: ExtensionContext,
+): Model<Api>[] {
+	const models: Model<Api>[] = [];
+	const push = (model: Model<Api> | undefined) => {
+		if (!model) {
+			return;
+		}
+		if (
+			!models.some((m) => m.provider === model.provider && m.id === model.id)
+		) {
+			models.push(model);
+		}
+	};
+
+	for (const spec of configuredModelSpecs(pi)) {
+		push(resolveModel(ctx, spec));
+	}
+	push(ctx.model);
+
+	return models;
+}
+
+/** Text of an assistant message, or "" when it carried no prose. */
+function textContent(content: unknown): string {
+	if (typeof content === "string") {
+		return content.trim();
+	}
+	if (!Array.isArray(content)) {
+		return "";
+	}
+	return content
+		.filter(
+			(c): c is { type: "text"; text: string } =>
+				c?.type === "text" && typeof c.text === "string",
+		)
+		.map((c) => c.text)
+		.join("\n")
+		.trim();
+}
+
+/**
+ * The last `limit` assistant messages, oldest first. The most recent assistant
+ * message must be complete — extracting questions from a half-written reply
+ * picks up questions the agent was still in the middle of answering.
+ */
+function assistantTexts(
+	messages: BranchPreparation["messages"],
+	limit: number,
+): string[] {
+	const texts: string[] = [];
+	let checkedNewest = false;
+
+	for (let i = messages.length - 1; i >= 0 && texts.length < limit; i--) {
+		const message = messages[i];
+		if (message.role !== "assistant") continue;
+
+		if (!checkedNewest) {
+			checkedNewest = true;
+			if (message.stopReason !== "stop") {
+				return [];
+			}
+		}
+
+		const text = textContent(message.content);
+		if (text.length > 0) {
+			texts.unshift(text);
+		}
+	}
+
+	return texts;
+}
+
+/**
+ * Build the extraction input for one model. pi's own branch selection keeps the
+ * newest entries that fit the model's context window, folds in compaction and
+ * branch summaries, honours context edits and skips tool results - the same
+ * budget logic /compact uses.
+ */
+function buildExtractionText(
+	branch: SessionEntry[],
+	messageCount: number,
+	model: Model<Api>,
+): string {
+	const budget = Math.max(0, model.contextWindow - RESERVE_TOKENS);
+	const { messages } = prepareBranchEntries(branch, budget);
+	const texts = assistantTexts(messages, messageCount);
+	if (texts.length === 0) {
+		throw new Error("no complete assistant message in the recent branch");
+	}
+	return texts
+		.map((text, i) => `--- Message ${i + 1} ---\n${text}`)
+		.join("\n\n");
 }
 
 function parseExtractionResult(text: string): ExtractionResult | null {
@@ -134,9 +266,16 @@ function parseExtractionResult(text: string): ExtractionResult | null {
 		const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
 		if (jsonMatch) jsonStr = jsonMatch[1].trim();
 		const parsed = JSON.parse(jsonStr);
-		if (parsed && Array.isArray(parsed.questions))
-			return parsed as ExtractionResult;
-		return null;
+		if (!parsed || !Array.isArray(parsed.questions)) {
+			return null;
+		}
+		const questions = parsed.questions.filter(
+			(q: unknown): q is ExtractedQuestion =>
+				typeof q === "object" &&
+				q !== null &&
+				typeof (q as ExtractedQuestion).question === "string",
+		);
+		return { questions };
 	} catch {
 		return null;
 	}
@@ -157,35 +296,79 @@ function buildPrompt(
 	return prompt;
 }
 
-function collectLastNAssistantMessages(branch: any[], n: number): string[] {
-	const texts: string[] = [];
-	let skippedLast = false;
+/**
+ * One request to one model, normalised into a result the loop can act on.
+ * A thrown error, `stopReason: "error"`, an abort, an empty reply and a reply
+ * that is not the expected JSON all collapse into three cases so the caller
+ * never has to guess whether "nothing happened" meant cancel or failure.
+ */
+async function requestExtraction(
+	ctx: ExtensionContext,
+	model: Model<Api>,
+	userText: string,
+	signal: AbortSignal,
+): Promise<ExtractionAttempt> {
+	const userMessage: Message = {
+		role: "user",
+		content: [{ type: "text", text: userText }],
+		timestamp: Date.now(),
+	};
 
-	for (let i = branch.length - 1; i >= 0 && texts.length < n; i--) {
-		const entry = branch[i];
-		if (entry.type !== "message") continue;
-		const msg = entry.message;
-		if (!("role" in msg) || msg.role !== "assistant") continue;
-
-		// The most recent assistant message must be complete; older ones are lenient
-		if (!skippedLast) {
-			if (msg.stopReason !== "stop") {
-				return []; // signal incomplete latest message
-			}
-			skippedLast = true;
+	let response: AssistantMessage;
+	try {
+		response = await ctx.modelRegistry.complete(
+			model,
+			{ systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
+			{ signal, cacheRetention: "none", sessionId: uuidv7() },
+		);
+	} catch (err) {
+		if (signal.aborted) {
+			return { status: "aborted" };
 		}
-
-		const textParts = msg.content
-			.filter(
-				(c: any): c is { type: "text"; text: string } => c.type === "text",
-			)
-			.map((c: { type: "text"; text: string }) => c.text);
-		if (textParts.length > 0) {
-			texts.unshift(textParts.join("\n")); // prepend to keep chronological order
-		}
+		return {
+			status: "failed",
+			failure: `${modelLabel(model)}: ${describeError(err)}`,
+		};
 	}
 
-	return texts;
+	if (signal.aborted || response.stopReason === "aborted") {
+		return { status: "aborted" };
+	}
+
+	if (response.stopReason === "error") {
+		return {
+			status: "failed",
+			failure: `${modelLabel(model)}: ${describeError(
+				response.errorMessage ?? "request failed",
+			)}`,
+		};
+	}
+
+	const text = textContent(response.content);
+	if (text.length === 0) {
+		return {
+			status: "failed",
+			failure: `${modelLabel(model)}: empty response`,
+		};
+	}
+
+	const result = parseExtractionResult(text);
+	if (!result) {
+		return {
+			status: "failed",
+			failure: `${modelLabel(model)}: ${
+				response.stopReason === "length"
+					? "reply hit the output limit before the JSON closed"
+					: "unparsable reply"
+			}`,
+		};
+	}
+
+	return {
+		status: "ok",
+		result,
+		truncated: response.stopReason === "length",
+	};
 }
 
 export default function (pi: ExtensionAPI) {
@@ -198,93 +381,117 @@ export default function (pi: ExtensionAPI) {
 			return;
 		}
 
-		if (!ctx.model) {
-			ctx.ui.notify("No model selected", "error");
+		const models = candidateModels(pi, ctx);
+		if (models.length === 0) {
+			ctx.ui.notify("No model available for question extraction", "error");
 			return;
 		}
 
 		const branch = ctx.sessionManager.getBranch();
-		const assistantTexts = collectLastNAssistantMessages(branch, messageCount);
-
-		if (assistantTexts.length === 0) {
-			ctx.ui.notify("No assistant messages found", "error");
+		if (branch.length === 0) {
+			ctx.ui.notify("No conversation to extract questions from", "error");
 			return;
 		}
 
-		const combinedText = assistantTexts
-			.map((text, i) => `--- Message ${i + 1} ---\n${text}`)
-			.join("\n\n");
+		// The input is built per candidate because the budget depends on the
+		// model's window; memoise by window size so a 3-model list with two
+		// equal windows builds twice, not three times.
+		const textByWindow = new Map<number, string>();
+		const extractionTextFor = (model: Model<Api>): string => {
+			const cached = textByWindow.get(model.contextWindow);
+			if (cached !== undefined) {
+				return cached;
+			}
+			const text = buildExtractionText(branch, messageCount, model);
+			textByWindow.set(model.contextWindow, text);
+			return text;
+		};
 
-		let extractionModel: Model<Api>;
-		try {
-			extractionModel = await selectExtractionModel(
-				ctx.model,
-				ctx.modelRegistry,
-			);
-		} catch (err) {
-			const msg = err instanceof Error ? err.message : String(err);
-			ctx.ui.notify(msg, "error");
-			return;
-		}
-
-		const extractionResult = await ctx.ui.custom<ExtractionResult | null>(
+		const outcome = await ctx.ui.custom<ExtractionOutcome>(
 			(tui, theme, _kb, done) => {
 				const loader = new BorderedLoader(
 					tui,
 					theme,
-					`Extracting questions using ${extractionModel.id}...`,
+					"Extracting questions...",
 				);
-				loader.onAbort = () => done(null);
+				loader.onAbort = () => done({ status: "cancelled" });
 
-				const doExtract = async () => {
-					const auth =
-						await ctx.modelRegistry.getApiKeyAndHeaders(extractionModel);
-					if (!auth.ok) return null;
-					const userMessage: UserMessage = {
-						role: "user",
-						content: [{ type: "text", text: combinedText }],
-						timestamp: Date.now(),
+				const doExtract = async (): Promise<ExtractionOutcome> => {
+					const failures: string[] = [];
+
+					for (const model of models) {
+						if (loader.signal.aborted) {
+							return { status: "cancelled" };
+						}
+
+						let userText: string;
+						try {
+							userText = extractionTextFor(model);
+						} catch (err) {
+							failures.push(`${modelLabel(model)}: ${describeError(err)}`);
+							continue;
+						}
+
+						const attempt = await requestExtraction(
+							ctx,
+							model,
+							userText,
+							loader.signal,
+						);
+
+						if (attempt.status === "aborted") {
+							return { status: "cancelled" };
+						}
+						if (attempt.status === "failed") {
+							failures.push(attempt.failure);
+							continue;
+						}
+
+						return {
+							status: "ok",
+							questions: attempt.result.questions,
+							modelLabel: modelLabel(model),
+							truncated: attempt.truncated,
+						};
+					}
+
+					return {
+						status: "error",
+						message:
+							failures.join(" | ") || "no usable model for extraction",
 					};
-
-					const response = await complete(
-						extractionModel,
-						{ systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
-						{
-							apiKey: auth.apiKey,
-							headers: auth.headers,
-							signal: loader.signal,
-						},
-					);
-
-					if (response.stopReason === "aborted") return null;
-
-					const responseText = response.content
-						.filter(
-							(c): c is { type: "text"; text: string } => c.type === "text",
-						)
-						.map((c) => c.text)
-						.join("\n");
-
-					return parseExtractionResult(responseText);
 				};
 
 				doExtract()
 					.then(done)
-					.catch(() => done(null));
+					.catch((err) => done({ status: "error", message: describeError(err) }));
+
 				return loader;
 			},
 		);
 
-		if (extractionResult === null) {
+		if (outcome.status === "cancelled") {
 			ctx.ui.notify("Cancelled", "info");
 			return;
 		}
 
-		if (extractionResult.questions.length === 0) {
+		if (outcome.status === "error") {
+			ctx.ui.notify(`Extraction failed — ${outcome.message}`, "error");
+			return;
+		}
+
+		if (outcome.truncated) {
+			ctx.ui.notify(
+				`Questions extracted with ${outcome.modelLabel} — reply hit its output limit, some may be missing`,
+				"warning",
+			);
+		}
+
+		if (outcome.questions.length === 0) {
 			const scope =
-				assistantTexts.length === 1
+				messageCount === 1
 					? "the last message"
-					: `the last ${assistantTexts.length} messages`;
+					: `the last ${messageCount} messages`;
 			ctx.ui.notify(`No questions found in ${scope}`, "info");
 			return;
 		}
@@ -292,7 +499,7 @@ export default function (pi: ExtensionAPI) {
 		// Collect answers using native UI dialogs
 		const answers: { question: string; answer: string; context?: string }[] =
 			[];
-		const questions = extractionResult.questions;
+		const questions = outcome.questions;
 
 		for (let i = 0; i < questions.length; i++) {
 			const q = questions[i];
@@ -368,7 +575,7 @@ export default function (pi: ExtensionAPI) {
 	pi.registerCommand("answer", {
 		description:
 			"Extract questions from last N assistant messages into interactive Q&A. Usage: /answer or /answer 3",
-		handler: (args, ctx) => {
+		handler: async (args, ctx: ExtensionCommandContext) => {
 			const trimmed = args.trim();
 			const count = trimmed ? Number.parseInt(trimmed, 10) : 1;
 			if (Number.isNaN(count) || count < 1) {
@@ -378,7 +585,7 @@ export default function (pi: ExtensionAPI) {
 				);
 				return;
 			}
-			return answerHandler(ctx, count);
+			await answerHandler(ctx, count);
 		},
 	});
 
@@ -388,7 +595,15 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	// Listen for trigger from other extensions (e.g., execute_command tool)
-	pi.events.on("trigger:answer", (ctx: ExtensionContext) => {
-		answerHandler(ctx, 1);
+	pi.events.on("trigger:answer", (data) => {
+		if (
+			typeof data === "object" &&
+			data !== null &&
+			"sessionManager" in data &&
+			"modelRegistry" in data &&
+			"ui" in data
+		) {
+			void answerHandler(data as ExtensionContext, 1);
+		}
 	});
 }
