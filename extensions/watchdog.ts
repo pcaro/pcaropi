@@ -1,4 +1,8 @@
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type {
+  ExtensionAPI,
+  ExtensionContext,
+} from "@mariozechner/pi-coding-agent";
+import { type AssistantMessage, type Message, uuidv7 } from "@mariozechner/pi-ai";
 
 interface JudgeResult {
   action: "continue" | "nudge" | "abort";
@@ -6,7 +10,13 @@ interface JudgeResult {
   compact: boolean;
 }
 
-function formatSessionSummary(ctx: any): string {
+/** A hung judge must never block a watchdog tick. */
+const JUDGE_TIMEOUT_MS = 30_000;
+
+/** Cap error text so a single failure cannot swallow the notification line. */
+const MAX_ERROR_CHARS = 120;
+
+function formatSessionSummary(ctx: ExtensionContext): string {
   const entries: any[] = ctx.sessionManager.getBranch();
   const recent = entries.slice(-20);
 
@@ -15,7 +25,7 @@ function formatSessionSummary(ctx: any): string {
   const CAP = 4000;
 
   // Context usage header
-  const usage = ctx.getContextUsage?.();
+  const usage = ctx.getContextUsage();
   if (usage?.tokens != null) {
     lines.push(`[CONTEXT] ${usage.tokens} tokens used`);
   }
@@ -77,28 +87,7 @@ function formatSessionSummary(ctx: any): string {
   return lines.join("\n");
 }
 
-async function callJudge(
-  pi: ExtensionAPI,
-  summary: string,
-  timeSinceActivityMs: number,
-  consecutiveInterventions: number
-): Promise<JudgeResult> {
-  const defaultResult: JudgeResult = {
-    action: "continue",
-    message: "Judge unavailable",
-    compact: false,
-  };
-
-  const idleSecs = Math.round(timeSinceActivityMs / 1000);
-
-  const judgePrompt = `You are monitoring an AI coding agent session. Analyze the recent activity and determine if the agent needs intervention.
-
-## Recent Session Activity
-${summary}
-
-## Situation
-- The agent has not produced any new activity for ${idleSecs} seconds
-- There have been ${consecutiveInterventions} previous watchdog interventions in this session
+const JUDGE_SYSTEM_PROMPT = `You are monitoring an AI coding agent session. Analyze the recent activity and determine if the agent needs intervention.
 
 ## Analysis Instructions
 Determine one of:
@@ -114,43 +103,136 @@ Also consider:
 Respond ONLY with valid JSON, no other text, no markdown fences:
 { "action": "continue" | "nudge" | "abort", "message": "explanation", "compact": true | false }`;
 
-  try {
-    const result = await pi.exec(
-      "pi",
-      [
-        "-p",
-        "--no-session",
-        "--no-tools",
-        "--model",
-        "anthropic/claude-haiku-3-5",
-        judgePrompt,
-      ],
-      { timeout: 30000 }
-    );
-
-    if (result.code !== 0 || !result.stdout) return defaultResult;
-
-    // Extract JSON — handle optional markdown code fences
-    const text = result.stdout.trim();
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return defaultResult;
-
-    const parsed = JSON.parse(jsonMatch[0]);
-    if (
-      parsed.action === "continue" ||
-      parsed.action === "nudge" ||
-      parsed.action === "abort"
-    ) {
-      return {
-        action: parsed.action,
-        message: String(parsed.message ?? ""),
-        compact: Boolean(parsed.compact),
-      };
-    }
-    return defaultResult;
-  } catch {
-    return defaultResult;
+/** One-line, stack-free, length-capped description of an error for UI display. */
+function describeError(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err);
+  const firstLine = raw.split("\n")[0].trim();
+  if (firstLine.length === 0) {
+    return "request failed";
   }
+  return firstLine.length > MAX_ERROR_CHARS
+    ? `${firstLine.slice(0, MAX_ERROR_CHARS)}…`
+    : firstLine;
+}
+
+/**
+ * The session model is authenticated by definition (the session is running on
+ * it), so it is the first choice. `getAvailable()` is auth-filtered, so the
+ * fallback can never select a provider without credentials.
+ */
+function judgeModel(ctx: ExtensionContext) {
+  return ctx.model ?? ctx.modelRegistry.getAvailable()[0];
+}
+
+function judgeUserText(
+  summary: string,
+  idleSecs: number,
+  consecutiveInterventions: number
+): string {
+  return `## Recent Session Activity\n${summary}\n\n## Situation\n- The agent has not produced any new activity for ${idleSecs} seconds\n- There have been ${consecutiveInterventions} previous watchdog interventions in this session`;
+}
+
+function parseJudge(text: string): JudgeResult | null {
+  // Extract JSON — handle optional markdown code fences
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) return null;
+
+  let parsed: { action?: unknown; message?: unknown; compact?: unknown };
+  try {
+    parsed = JSON.parse(jsonMatch[0]);
+  } catch {
+    return null;
+  }
+
+  if (
+    parsed.action !== "continue" &&
+    parsed.action !== "nudge" &&
+    parsed.action !== "abort"
+  ) {
+    return null;
+  }
+
+  return {
+    action: parsed.action,
+    message: String(parsed.message ?? ""),
+    compact: Boolean(parsed.compact),
+  };
+}
+
+type JudgeAttempt =
+  | { status: "ok"; result: JudgeResult }
+  | { status: "failed"; failure: string };
+
+/**
+ * One request to the judge model, normalised into a result the tick can act on.
+ * The request goes through the registry so provider routing and request-time
+ * authentication apply, and it uses a throwaway session id so the judge never
+ * shares cache state with the conversation it is judging.
+ */
+async function callJudge(
+  ctx: ExtensionContext,
+  summary: string,
+  timeSinceActivityMs: number,
+  consecutiveInterventions: number
+): Promise<JudgeAttempt> {
+  const model = judgeModel(ctx);
+  if (!model) {
+    return { status: "failed", failure: "no model available" };
+  }
+
+  const label = `${model.provider}/${model.id}`;
+  const userMessage: Message = {
+    role: "user",
+    content: [
+      {
+        type: "text",
+        text: judgeUserText(
+          summary,
+          Math.round(timeSinceActivityMs / 1000),
+          consecutiveInterventions
+        ),
+      },
+    ],
+    timestamp: Date.now(),
+  };
+
+  let response: AssistantMessage;
+  try {
+    response = await ctx.modelRegistry.complete(
+      model,
+      { systemPrompt: JUDGE_SYSTEM_PROMPT, messages: [userMessage] },
+      {
+        signal: AbortSignal.timeout(JUDGE_TIMEOUT_MS),
+        cacheRetention: "none",
+        sessionId: uuidv7(),
+      }
+    );
+  } catch (err) {
+    return { status: "failed", failure: `${label}: ${describeError(err)}` };
+  }
+
+  if (response.stopReason === "aborted") {
+    return { status: "failed", failure: `${label}: request timed out` };
+  }
+
+  if (response.stopReason === "error") {
+    return {
+      status: "failed",
+      failure: `${label}: ${describeError(response.errorMessage ?? "request failed")}`,
+    };
+  }
+
+  const text = response.content
+    .filter((c): c is { type: "text"; text: string } => c.type === "text")
+    .map((c) => c.text)
+    .join("\n");
+
+  const result = parseJudge(text);
+  if (!result) {
+    return { status: "failed", failure: `${label}: unparsable verdict` };
+  }
+
+  return { status: "ok", result };
 }
 
 export default function (pi: ExtensionAPI) {
@@ -163,8 +245,19 @@ export default function (pi: ExtensionAPI) {
   const maxInterventions: number = 3;
 
   let checkInterval: ReturnType<typeof setInterval> | null = null;
-  let sessionCtx: any = null;
+  let sessionCtx: ExtensionContext | null = null;
   let judgeInProgress: boolean = false;
+  let judgeFailureReported: boolean = false;
+
+  /**
+   * A judge that cannot run is a silent no-op, so report it once per enable
+   * instead of every tick.
+   */
+  function reportJudgeFailure(failure: string) {
+    if (judgeFailureReported) return;
+    judgeFailureReported = true;
+    sessionCtx?.ui.notify(`Watchdog judge unavailable — ${failure}`, "warning");
+  }
 
   function updateActivity() {
     lastActivityTimestamp = Date.now();
@@ -184,7 +277,7 @@ export default function (pi: ExtensionAPI) {
     }
   }
 
-  function startTimer(ctx: any) {
+  function startTimer(ctx: ExtensionContext) {
     if (checkInterval) clearInterval(checkInterval);
     checkInterval = setInterval(async () => {
       if (!enabled || !ctx) return;
@@ -215,7 +308,21 @@ export default function (pi: ExtensionAPI) {
         }
 
         const summary = formatSessionSummary(ctx);
-        const judgment = await callJudge(pi, summary, timeSinceActivity, consecutiveInterventions);
+        const judged = await callJudge(
+          ctx,
+          summary,
+          timeSinceActivity,
+          consecutiveInterventions
+        );
+
+        if (judged.status === "failed") {
+          // Leave the activity timestamp alone so the next tick retries, but
+          // surface the reason once — a dead judge must not look like progress.
+          reportJudgeFailure(judged.failure);
+          return;
+        }
+
+        const judgment = judged.result;
 
         if (judgment.action === "continue") {
           // No intervention needed — reset timestamp so we don't immediately re-trigger
@@ -278,6 +385,7 @@ export default function (pi: ExtensionAPI) {
     sessionCtx = ctx;
     lastActivityTimestamp = Date.now();
     consecutiveInterventions = 0;
+    judgeFailureReported = false;
     updateStatusBar();
     if (enabled) startTimer(ctx);
   });
@@ -300,29 +408,37 @@ export default function (pi: ExtensionAPI) {
       if (arg === "off") {
         enabled = false;
         updateStatusBar();
-        return "Watchdog disabled (🙈).";
+        ctx.ui.notify("Watchdog disabled (🙈)", "info");
+        return;
       }
 
       if (arg === "on") {
         enabled = true;
         consecutiveInterventions = 0;
+        judgeFailureReported = false;
         lastActivityTimestamp = Date.now();
         updateStatusBar();
         startTimer(ctx);
-        return `Watchdog enabled (🐵 ${getIntervalMinutes()}m).`;
+        ctx.ui.notify(`Watchdog enabled (🐵 ${getIntervalMinutes()}m)`, "info");
+        return;
       }
 
       if (arg === "") {
         enabled = !enabled;
         if (enabled) {
           consecutiveInterventions = 0;
+          judgeFailureReported = false;
           lastActivityTimestamp = Date.now();
           startTimer(ctx);
         }
         updateStatusBar();
-        return enabled
-          ? `Watchdog enabled (🐵 ${getIntervalMinutes()}m).`
-          : "Watchdog disabled (🙈).";
+        ctx.ui.notify(
+          enabled
+            ? `Watchdog enabled (🐵 ${getIntervalMinutes()}m)`
+            : "Watchdog disabled (🙈)",
+          "info"
+        );
+        return;
       }
 
       const minutes = parseInt(arg, 10);
@@ -330,13 +446,18 @@ export default function (pi: ExtensionAPI) {
         checkIntervalMs = minutes * 60_000;
         stuckThresholdMs = checkIntervalMs;
         enabled = true;
+        judgeFailureReported = false;
         updateStatusBar();
         // Restart timer with new interval
         startTimer(ctx);
-        return `Watchdog set to ${minutes}m interval (🐵 ${minutes}m).`;
+        ctx.ui.notify(`Watchdog set to ${minutes}m interval (🐵 ${minutes}m)`, "info");
+        return;
       }
 
-      return `Unknown argument: "${arg}". Usage: /watchdog [off|on|<minutes>]`;
+      ctx.ui.notify(
+        `Unknown argument: "${arg}". Usage: /watchdog [off|on|<minutes>]`,
+        "error"
+      );
     },
   });
 }
