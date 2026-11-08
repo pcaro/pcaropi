@@ -166,6 +166,11 @@
       "opencode-go-console/deepseek-v4.1-flash"
     ]
   },
+  "answer": {
+    "models": [
+      "opencode-go-console/deepseek-v4.1-flash"
+    ]
+  },
   "hideThinkingBlock": true,
   "quietStartup": true,
   "pi-screenshots": {
