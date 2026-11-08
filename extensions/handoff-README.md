@@ -18,8 +18,8 @@ submitting.
 
 Flow:
 
-1. Gathers the current branch's messages (respects prior compactions —
-   includes the compaction summary plus everything kept after it).
+1. Gathers the current branch within the chosen model's token budget
+   (respects prior compactions — the compaction summary counts as context).
 2. Asks the model to produce a self-contained handoff prompt (context +
    files + next task).
 3. Opens the result in the editor for review.
@@ -30,8 +30,8 @@ Requires interactive mode.
 
 ## Choosing models
 
-By default the conversation is summarised by the **current session model**.
-To pin an ordered list instead, add to `settings.json`:
+With no `handoff.models` list, the **current session model** does the
+summarising. To pin an ordered list instead, add to `settings.json`:
 
 ```json
 "handoff": {
@@ -47,6 +47,20 @@ order, then the session model as a last resort, so the list is a preference
 and never a hard requirement. Specs that no longer match a model, or whose
 provider has no credentials configured, are skipped silently.
 
+## What gets sent
+
+The branch is selected by pi's own `prepareBranchEntries()`, the same budget
+logic `/compact` uses: `model.contextWindow - 16384` tokens, newest entries
+first, compaction and branch summaries counted as context, `context_edit`
+entries honored, and tool results skipped (the assistant's tool call already
+carries the intent). Tool calls also produce a `## Files touched` section, so
+the draft's file list comes from what pi actually read and modified instead
+of the model guessing.
+
+The budget is per candidate, so a 200k-window model gets more history than a
+128k one. If not even the newest message fits, `/handoff` says so before
+calling any model instead of sending an empty conversation.
+
 ## Failure behaviour
 
 `/handoff` never dumps a stack trace into the session:
@@ -59,14 +73,15 @@ provider has no credentials configured, are skipped silently.
 - Aborting the spinner reports `Cancelled` and is never treated as an error.
 - A draft that stopped at the model's output limit (`stopReason: "length"`)
   still opens, with a warning that it may be truncated.
-- An unreadable session branch fails with a one-line message before any model
+- An unreadable or empty branch fails with a one-line message before any model
   is called.
 
-## Long conversations
+## Draft size
 
-The conversation is capped at 120k characters, keeping the most recent tail
-and marking the omitted portion, so a long session still fits the summarising
-model instead of failing on every candidate.
+The system prompt asks for a draft under 6000 characters. If a model ignores
+that and returns more than 8000, one extra call on the same model compresses
+it (decisions, paths, symbols and the task preserved). If that pass fails, the
+long draft is kept: a verbose handoff beats no handoff.
 
 ## Origin
 
