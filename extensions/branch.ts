@@ -5,6 +5,11 @@ import {
 	getMarkdownTheme,
 } from "@earendil-works/pi-coding-agent";
 import { Box, Markdown, Text } from "@earendil-works/pi-tui";
+import {
+	candidateModels,
+	describeError,
+	modelLabel,
+} from "./lib/model-fallback.ts";
 
 type BranchInfo = {
 	count: number;
@@ -190,9 +195,11 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
-			const model = ctx.model;
-			if (!model) {
-				ctx.ui.notify("No model selected", "warning");
+			const models = candidateModels(pi, ctx, "branch", {
+				includeAnyAvailable: true,
+			});
+			if (models.length === 0) {
+				ctx.ui.notify("No model available to summarize", "warning");
 				return;
 			}
 
@@ -209,30 +216,55 @@ export default function (pi: ExtensionAPI) {
 
 			ctx.ui.notify("Generating summary...", "info");
 
-			let result: BranchSummaryResult;
-			try {
-				result = await generateBranchSummary(path, {
-					model,
-					signal: ctx.signal ?? new AbortController().signal,
-					// Route through the configured provider so custom providers and resolved auth are used.
-					streamFn: (streamModel, context, options) => ctx.modelRegistry.streamSimple(streamModel, context, options),
-					...(ctx.thinkingLevel ? { thinkingLevel: ctx.thinkingLevel } : {}),
-				});
-			} catch (err) {
-				ctx.ui.notify(`Compress failed: ${err instanceof Error ? err.message : String(err)}`, "error");
+			// Try each candidate in order: a summary from a fallback model beats no
+			// summary at all, and the notification names whichever one ran.
+			const failures: string[] = [];
+			let summary: string | null = null;
+			let usedModel: string | null = null;
+
+			for (const model of models) {
+				if (ctx.signal?.aborted) {
+					ctx.ui.notify("Compress cancelled", "info");
+					return;
+				}
+
+				let result: BranchSummaryResult;
+				try {
+					result = await generateBranchSummary(path, {
+						model,
+						signal: ctx.signal ?? new AbortController().signal,
+						// Route through the configured provider so custom providers and resolved auth are used.
+						streamFn: (streamModel, context, options) => ctx.modelRegistry.streamSimple(streamModel, context, options),
+						...(ctx.thinkingLevel ? { thinkingLevel: ctx.thinkingLevel } : {}),
+					});
+				} catch (err) {
+					failures.push(`${modelLabel(model)}: ${describeError(err)}`);
+					continue;
+				}
+
+				if (result.aborted) {
+					ctx.ui.notify("Compress cancelled", "info");
+					return;
+				}
+				if (result.error || !result.summary) {
+					failures.push(`${modelLabel(model)}: ${describeError(result.error ?? "empty summary")}`);
+					continue;
+				}
+
+				summary = result.summary;
+				usedModel = modelLabel(model);
+				break;
+			}
+
+			if (summary === null) {
+				ctx.ui.notify(
+					`Compress failed — ${failures.join(" | ") || "no usable model"}`,
+					"error",
+				);
 				return;
 			}
 
-			if (result.aborted) {
-				ctx.ui.notify("Compress cancelled", "info");
-				return;
-			}
-			if (result.error || !result.summary) {
-				ctx.ui.notify(`Summary generation failed${result.error ? `: ${result.error}` : ""}`, "error");
-				return;
-			}
-
-			const summary = result.summary.replace(BRANCH_SUMMARY_PREAMBLE, "");
+			const summaryText = summary.replace(BRANCH_SUMMARY_PREAMBLE, "");
 			const info = getBranchInfo(ctx);
 			const parentSession = ctx.sessionManager.getSessionFile();
 
@@ -242,11 +274,11 @@ export default function (pi: ExtensionAPI) {
 				setup: async (sessionManager) => {
 					sessionManager.appendCustomMessageEntry(
 						"branch-compressed",
-						summary,
+						summaryText,
 						true,
 						{
 							count: info.count || 1,
-							tokens: Math.ceil(summary.length / 4),
+							tokens: Math.ceil(summaryText.length / 4),
 							percent: null,
 						},
 					);
@@ -254,7 +286,10 @@ export default function (pi: ExtensionAPI) {
 				// The original ctx is stale after a successful session replacement.
 				withSession: async (replacementCtx) => {
 					updateBranchStatus(replacementCtx);
-					replacementCtx.ui.notify("Started fresh session with conversation summary", "info");
+					replacementCtx.ui.notify(
+						`Started fresh session with conversation summary (${usedModel})`,
+						"info",
+					);
 				},
 			});
 
