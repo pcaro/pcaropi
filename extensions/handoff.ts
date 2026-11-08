@@ -17,21 +17,23 @@
  *   "handoff": { "models": ["opencode-go/deepseek-v4.1-flash", "claude-bridge/claude-sonnet-5"] }
  *
  * Candidates are tried in order; unmatched or unauthenticated specs are
- * skipped, and the session model is always the last resort. The conversation
- * is capped so a long session still fits the summarising model.
+ * skipped, and the session model is always the last resort. The branch is
+ * selected with pi's own token budget for the chosen model, and an oversized
+ * draft gets one compression pass.
  */
 
-import type { AgentMessage } from "@earendil-works/pi-agent-core";
-import type { Api, Model } from "@earendil-works/pi-ai";
+import type { Api, AssistantMessage, Model } from "@earendil-works/pi-ai";
 import { type Message, uuidv7 } from "@earendil-works/pi-ai";
 import type {
 	ExtensionAPI,
 	ExtensionCommandContext,
+	FileOperations,
 	SessionEntry,
 } from "@earendil-works/pi-coding-agent";
 import {
 	BorderedLoader,
 	convertToLlm,
+	prepareBranchEntries,
 	serializeConversation,
 } from "@earendil-works/pi-coding-agent";
 
@@ -41,8 +43,9 @@ const SYSTEM_PROMPT = `You are a context transfer assistant. Given a conversatio
 2. Lists any relevant files that were discussed or modified
 3. Clearly states the next task based on the user's goal
 4. Is self-contained - the new thread should be able to proceed without the old conversation
+5. Stays under 6000 characters - omit anything that does not change what happens next
 
-Format your response as a prompt the user can send to start the new thread. Be concise but include all necessary context. Do not include any preamble like "Here's the prompt" - just output the prompt itself.
+Format your response as a prompt the user can send to start the new thread. Be concise but include all necessary context. Do not include any preamble like "Here's the prompt" - just output the prompt itself. A "Files touched" section is provided when pi recorded file operations; use it for the file list.
 
 Example output format:
 ## Context
@@ -57,8 +60,13 @@ Files involved:
 ## Task
 [Clear description of what to do next based on user's goal]`;
 
-/** Keep handoff requests within a sane budget; the recent tail matters most. */
-const MAX_CONVERSATION_CHARS = 120_000;
+const REPAIR_SYSTEM_PROMPT = `You compress draft prompts. Rewrite the given prompt so it fits the requested character limit, keeping every decision, file path, symbol, error message and next task. Drop redundancy and prose, never facts. Output only the rewritten prompt.`;
+
+/** Space kept free for the system prompt and the response. */
+const RESERVE_TOKENS = 16_384;
+
+/** Drafts longer than this get one compression pass. */
+const MAX_DRAFT_CHARS = 8_000;
 
 /** Cap error text so a single failure cannot swallow the notification line. */
 const MAX_ERROR_CHARS = 120;
@@ -68,58 +76,50 @@ type GenerationResult =
 	| { status: "cancelled" }
 	| { status: "error"; message: string };
 
-function trimConversation(text: string): string {
-	if (text.length <= MAX_CONVERSATION_CHARS) {
-		return text;
-	}
-	const omitted = text.length - MAX_CONVERSATION_CHARS;
-	return `[earlier conversation truncated: ${omitted} characters omitted]\n\n${text.slice(-MAX_CONVERSATION_CHARS)}`;
+type Attempt =
+	| { status: "ok"; text: string; stopReason: AssistantMessage["stopReason"] }
+	| { status: "aborted" }
+	| { status: "failed"; failure: string };
+
+function fileSummary(fileOps: FileOperations): string {
+	const modified = [...fileOps.edited, ...fileOps.written];
+	return [
+		modified.length > 0 ? `Modified: ${modified.join(", ")}` : "",
+		fileOps.read.size > 0 ? `Read: ${[...fileOps.read].join(", ")}` : "",
+	]
+		.filter((line) => line.length > 0)
+		.join("\n");
 }
 
-function entryToMessage(entry: SessionEntry): AgentMessage | undefined {
-	if (entry.type === "message") {
-		return entry.message;
+/**
+ * Build the user message for one model. pi's own branch selection keeps the
+ * newest entries that fit the model's context window, folds in compaction and
+ * branch summaries, honours context edits and skips tool results - the same
+ * budget logic /compact uses.
+ */
+function handoffText(
+	branch: SessionEntry[],
+	goal: string,
+	model: Model<Api>,
+): string {
+	const budget = Math.max(0, model.contextWindow - RESERVE_TOKENS);
+	const { messages, fileOps } = prepareBranchEntries(branch, budget);
+	if (messages.length === 0) {
+		throw new Error("no conversation content fits the context window");
 	}
-	if (entry.type === "compaction") {
-		return {
-			role: "compactionSummary",
-			summary: entry.summary,
-			tokensBefore: entry.tokensBefore,
-			timestamp: new Date(entry.timestamp).getTime(),
-		};
-	}
-	return undefined;
+
+	const files = fileSummary(fileOps);
+	return [
+		"## Conversation History",
+		serializeConversation(convertToLlm(messages)),
+		...(files.length > 0 ? ["## Files touched", files] : []),
+		"## User's Goal for New Thread",
+		goal,
+	].join("\n\n");
 }
 
-function getHandoffMessages(branch: SessionEntry[]): AgentMessage[] {
-	let compactionIndex = -1;
-	for (let i = branch.length - 1; i >= 0; i--) {
-		if (branch[i].type === "compaction") {
-			compactionIndex = i;
-			break;
-		}
-	}
-	if (compactionIndex < 0) {
-		return branch
-			.map(entryToMessage)
-			.filter((message) => message !== undefined);
-	}
-
-	const compaction = branch[compactionIndex];
-	const firstKeptIndex =
-		compaction.type === "compaction"
-			? branch.findIndex((entry) => entry.id === compaction.firstKeptEntryId)
-			: -1;
-	const compactedBranch = [
-		compaction,
-		...(firstKeptIndex >= 0
-			? branch.slice(firstKeptIndex, compactionIndex)
-			: []),
-		...branch.slice(compactionIndex + 1),
-	];
-	return compactedBranch
-		.map(entryToMessage)
-		.filter((message) => message !== undefined);
+function repairText(draft: string): string {
+	return `## Draft prompt\n\n${draft}\n\n## Requirement\n\nRewrite it to at most ${MAX_DRAFT_CHARS} characters.`;
 }
 
 function modelLabel(model: Model<Api>): string {
@@ -206,6 +206,63 @@ function candidateModels(
 	return models;
 }
 
+/** One request to one model, normalised into a result the loop can act on. */
+async function requestHandoff(
+	ctx: ExtensionCommandContext,
+	model: Model<Api>,
+	systemPrompt: string,
+	userText: string,
+	signal: AbortSignal,
+): Promise<Attempt> {
+	const userMessage: Message = {
+		role: "user",
+		content: [{ type: "text", text: userText }],
+		timestamp: Date.now(),
+	};
+
+	let response: AssistantMessage;
+	try {
+		response = await ctx.modelRegistry.complete(
+			model,
+			{ systemPrompt, messages: [userMessage] },
+			{ signal, cacheRetention: "none", sessionId: uuidv7() },
+		);
+	} catch (err) {
+		if (signal.aborted) {
+			return { status: "aborted" };
+		}
+		return {
+			status: "failed",
+			failure: `${modelLabel(model)}: ${describeError(err)}`,
+		};
+	}
+
+	if (signal.aborted || response.stopReason === "aborted") {
+		return { status: "aborted" };
+	}
+
+	if (response.stopReason === "error") {
+		return {
+			status: "failed",
+			failure: `${modelLabel(model)}: ${describeError(
+				response.errorMessage ?? "request failed",
+			)}`,
+		};
+	}
+
+	const text = response.content
+		.filter((c): c is { type: "text"; text: string } => c.type === "text")
+		.map((c) => c.text)
+		.join("\n")
+		.trim();
+
+	if (text.length === 0) {
+		return { status: "failed", failure: `${modelLabel(model)}: empty response` };
+	}
+
+	return { status: "ok", text, stopReason: response.stopReason };
+}
+
 export default function (pi: ExtensionAPI) {
 	pi.registerCommand("handoff", {
 		description: "Transfer context to a new focused session",
@@ -227,22 +284,28 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
-			// Gather conversation context from current branch. If the branch was compacted,
-			// include the compaction summary plus entries from firstKeptEntryId onward.
-			const messages = getHandoffMessages(ctx.sessionManager.getBranch());
-
-			if (messages.length === 0) {
+			// pi's branch selection keeps the newest entries that fit the model's
+			// context window, so the text is built per candidate and memoised by
+			// window size. Build it once up front to fail fast on an unreadable branch.
+			const branch = ctx.sessionManager.getBranch();
+			if (branch.length === 0) {
 				ctx.ui.notify("No conversation to hand off", "error");
 				return;
 			}
 
-			// Convert to LLM format and serialize
-			let conversationText: string;
+			const textByWindow = new Map<number, string>();
+			const handoffTextFor = (model: Model<Api>): string => {
+				const cached = textByWindow.get(model.contextWindow);
+				if (cached !== undefined) {
+					return cached;
+				}
+				const text = handoffText(branch, goal, model);
+				textByWindow.set(model.contextWindow, text);
+				return text;
+			};
+
 			try {
-				const llmMessages = convertToLlm(messages);
-				conversationText = trimConversation(
-					serializeConversation(llmMessages),
-				);
+				handoffTextFor(models[0]);
 			} catch (err) {
 				ctx.ui.notify(
 					`Handoff failed: could not read conversation (${describeError(err)})`,
@@ -263,17 +326,6 @@ export default function (pi: ExtensionAPI) {
 					);
 					loader.onAbort = () => done({ status: "cancelled" });
 
-					const userMessage: Message = {
-						role: "user",
-						content: [
-							{
-								type: "text",
-								text: `## Conversation History\n\n${conversationText}\n\n## User's Goal for New Thread\n\n${goal}`,
-							},
-						],
-						timestamp: Date.now(),
-					};
-
 					const doGenerate = async (): Promise<GenerationResult> => {
 						const failures: string[] = [];
 
@@ -282,66 +334,67 @@ export default function (pi: ExtensionAPI) {
 								return { status: "cancelled" };
 							}
 
-							let response;
+							let userText: string;
 							try {
-								response = await ctx.modelRegistry.complete(
-									model,
-									{ systemPrompt: SYSTEM_PROMPT, messages: [userMessage] },
-									{
-										signal: loader.signal,
-										cacheRetention: "none",
-										sessionId: uuidv7(),
-									},
-								);
+								userText = handoffTextFor(model);
 							} catch (err) {
-								if (loader.signal.aborted) {
-									return { status: "cancelled" };
-								}
 								failures.push(
 									`${modelLabel(model)}: ${describeError(err)}`,
 								);
 								continue;
 							}
 
-							if (loader.signal.aborted || response.stopReason === "aborted") {
+							const drafted = await requestHandoff(
+								ctx,
+								model,
+								SYSTEM_PROMPT,
+								userText,
+								loader.signal,
+							);
+
+							if (drafted.status === "aborted") {
 								return { status: "cancelled" };
 							}
-
-							if (response.stopReason === "error") {
-								failures.push(
-									`${modelLabel(model)}: ${describeError(
-										response.errorMessage ?? "request failed",
-									)}`,
-								);
+							if (drafted.status === "failed") {
+								failures.push(drafted.failure);
 								continue;
 							}
 
-							const text = response.content
-								.filter(
-									(c): c is { type: "text"; text: string } =>
-										c.type === "text",
-								)
-								.map((c) => c.text)
-								.join("\n")
-								.trim();
+							let { text, stopReason } = drafted;
 
-							if (!text) {
-								failures.push(`${modelLabel(model)}: empty response`);
-								continue;
+							// One compression pass when the draft is too long to read. A
+							// failed repair is not fatal: the long draft is still usable.
+							if (text.length > MAX_DRAFT_CHARS) {
+								const repaired = await requestHandoff(
+									ctx,
+									model,
+									REPAIR_SYSTEM_PROMPT,
+									repairText(text),
+									loader.signal,
+								);
+								if (repaired.status === "aborted") {
+									return { status: "cancelled" };
+								}
+								if (
+									repaired.status === "ok" &&
+									repaired.text.length < text.length
+								) {
+									text = repaired.text;
+									stopReason = repaired.stopReason;
+								}
 							}
 
 							return {
 								status: "ok",
 								text,
 								modelLabel: modelLabel(model),
-								truncated: response.stopReason === "length",
+								truncated: stopReason === "length",
 							};
 						}
 
 						return {
 							status: "error",
-							message:
-								failures.join(" | ") || "no usable model for handoff",
+							message: failures.join(" | ") || "no usable model for handoff",
 						};
 					};
 
