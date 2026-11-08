@@ -17,7 +17,8 @@
  *   "handoff": { "models": ["opencode-go/deepseek-v4.1-flash", "claude-bridge/claude-sonnet-5"] }
  *
  * Candidates are tried in order; unmatched or unauthenticated specs are
- * skipped, and the session model is always the last resort.
+ * skipped, and the session model is always the last resort. The conversation
+ * is capped so a long session still fits the summarising model.
  */
 
 import type { AgentMessage } from "@earendil-works/pi-agent-core";
@@ -56,10 +57,24 @@ Files involved:
 ## Task
 [Clear description of what to do next based on user's goal]`;
 
+/** Keep handoff requests within a sane budget; the recent tail matters most. */
+const MAX_CONVERSATION_CHARS = 120_000;
+
+/** Cap error text so a single failure cannot swallow the notification line. */
+const MAX_ERROR_CHARS = 120;
+
 type GenerationResult =
-	| { status: "ok"; text: string; modelLabel: string }
+	| { status: "ok"; text: string; modelLabel: string; truncated: boolean }
 	| { status: "cancelled" }
 	| { status: "error"; message: string };
+
+function trimConversation(text: string): string {
+	if (text.length <= MAX_CONVERSATION_CHARS) {
+		return text;
+	}
+	const omitted = text.length - MAX_CONVERSATION_CHARS;
+	return `[earlier conversation truncated: ${omitted} characters omitted]\n\n${text.slice(-MAX_CONVERSATION_CHARS)}`;
+}
 
 function entryToMessage(entry: SessionEntry): AgentMessage | undefined {
 	if (entry.type === "message") {
@@ -111,11 +126,16 @@ function modelLabel(model: Model<Api>): string {
 	return `${model.provider}/${model.id}`;
 }
 
-/** One-line, stack-free description of an error for UI display. */
+/** One-line, stack-free, length-capped description of an error for UI display. */
 function describeError(err: unknown): string {
 	const raw = err instanceof Error ? err.message : String(err);
 	const firstLine = raw.split("\n")[0].trim();
-	return firstLine.length > 0 ? firstLine : "request failed";
+	if (firstLine.length === 0) {
+		return "request failed";
+	}
+	return firstLine.length > MAX_ERROR_CHARS
+		? `${firstLine.slice(0, MAX_ERROR_CHARS)}…`
+		: firstLine;
 }
 
 /** Ordered, de-duplicated model spec list from settings: `handoff.models`. */
@@ -132,7 +152,11 @@ function configuredModelSpecs(pi: ExtensionAPI): string[] {
 		.filter((spec) => spec.length > 0);
 }
 
-/** Resolve `provider/id`, or a bare id against the authenticated catalogue. */
+/**
+ * Resolve `provider/id`, or a bare id, to a model with credentials configured.
+ * `getAvailable()` is auth-filtered; `find()` is not, so it is only trusted when
+ * the provider itself is authenticated.
+ */
 function resolveModel(
 	ctx: ExtensionCommandContext,
 	spec: string,
@@ -144,12 +168,11 @@ function resolveModel(
 	if (slash > 0) {
 		const provider = spec.slice(0, slash);
 		const id = spec.slice(slash + 1);
-		const exact =
-			registry.find(provider, id) ??
-			available.find((m) => m.provider === provider && m.id === id);
-		if (exact) {
-			return exact;
-		}
+		const known = registry.find(provider, id);
+		return (
+			available.find((m) => m.provider === provider && m.id === id) ??
+			(known && registry.hasConfiguredAuth(known) ? known : undefined)
+		);
 	}
 
 	return (
@@ -217,7 +240,9 @@ export default function (pi: ExtensionAPI) {
 			let conversationText: string;
 			try {
 				const llmMessages = convertToLlm(messages);
-				conversationText = serializeConversation(llmMessages);
+				conversationText = trimConversation(
+					serializeConversation(llmMessages),
+				);
 			} catch (err) {
 				ctx.ui.notify(
 					`Handoff failed: could not read conversation (${describeError(err)})`,
@@ -305,7 +330,12 @@ export default function (pi: ExtensionAPI) {
 								continue;
 							}
 
-							return { status: "ok", text, modelLabel: modelLabel(model) };
+							return {
+								status: "ok",
+								text,
+								modelLabel: modelLabel(model),
+								truncated: response.stopReason === "length",
+							};
 						}
 
 						return {
@@ -317,7 +347,9 @@ export default function (pi: ExtensionAPI) {
 
 					doGenerate()
 						.then(done)
-						.catch(() => done({ status: "error", message: "generation failed" }));
+						.catch((err) =>
+							done({ status: "error", message: describeError(err) }),
+						);
 
 					return loader;
 				},
@@ -333,14 +365,22 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
-			if (result.modelLabel) {
+			if (result.truncated) {
+				ctx.ui.notify(
+					`Handoff draft ready (${result.modelLabel}) — model hit its output limit, check for truncation`,
+					"warning",
+				);
+			} else {
 				ctx.ui.notify(`Handoff draft ready (${result.modelLabel})`, "info");
 			}
 
 			// Let user edit the generated prompt
-			const editedPrompt = await ctx.ui.editor("Edit handoff prompt", result.text);
+			const editedPrompt = await ctx.ui.editor(
+				"Edit handoff prompt",
+				result.text,
+			);
 
-			if (editedPrompt === undefined) {
+			if (editedPrompt === undefined || editedPrompt.trim().length === 0) {
 				ctx.ui.notify("Cancelled", "info");
 				return;
 			}
