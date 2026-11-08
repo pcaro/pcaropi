@@ -12,19 +12,19 @@
  * messages are selected within pi's own token budget for the chosen model.
  */
 
-import type { Api, AssistantMessage, Message, Model } from "@mariozechner/pi-ai";
-import { uuidv7 } from "@mariozechner/pi-ai";
+import type { Api, AssistantMessage, Message, Model } from "@earendil-works/pi-ai";
+import { uuidv7 } from "@earendil-works/pi-ai";
 import type {
 	BranchPreparation,
 	ExtensionAPI,
 	ExtensionCommandContext,
 	ExtensionContext,
 	SessionEntry,
-} from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent";
 import {
 	BorderedLoader,
 	prepareBranchEntries,
-} from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent";
 import {
 	candidateModels,
 	describeError,
