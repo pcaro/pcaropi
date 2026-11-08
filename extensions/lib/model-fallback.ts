@@ -126,7 +126,16 @@ export function candidateModels(
 	push(ctx.model);
 
 	if (options.includeAnyAvailable) {
-		push(ctx.modelRegistry.getAvailable()[0]);
+		// The first model that is not already a candidate: `getAvailable()[0]` is
+		// usually the session model, which would add nothing.
+		push(
+			ctx.modelRegistry
+				.getAvailable()
+				.find(
+					(m) =>
+						!models.some((x) => x.provider === m.provider && x.id === m.id),
+				),
+		);
 	}
 
 	return models;
