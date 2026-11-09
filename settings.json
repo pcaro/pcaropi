@@ -88,7 +88,8 @@
     "../../src/pi-packages/pi-session-name",
     "npm:pi-claude-bridge",
     "npm:pi-provider-opencode-console",
-    "../../src/howaboua-pi-stuff/packages/pi-suggestions"
+    "../../src/howaboua-pi-stuff/packages/pi-suggestions",
+    "npm:@howaboua/pi-skill-harness-and-agent-engineering"
   ],
   "lastChangelogVersion": "1.5.0",
   "defaultProvider": "opencode-go-console",

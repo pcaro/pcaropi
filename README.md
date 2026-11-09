@@ -210,6 +210,7 @@ Native MCP servers are not packages: the ones configured today are `linkup` (act
 | [**pi-cache-optimizer**](https://www.npmjs.com/package/pi-cache-optimizer)       | npm                      | Improves prompt/KV cache hit rates with stable keys and footer stats.                               |
 | [**@fyeeme/pi-session-name**](https://github.com/fyeeme/pi-packages)            | GitHub (fyeeme)          | AI-names sessions (follow/first/auto modes), `/rename`, and never overwrites a hand-picked name.    |
 | [**pi-claude-bridge**](https://github.com/elidickinson/pi-claude-bridge)          | GitHub (elidickinson)    | Bridge to Claude Code (Agent SDK): `claude-bridge/*` models in `/model` and the `AskClaude` tool.   |
+| [**@howaboua/pi-skill-harness-and-agent-engineering**](https://github.com/IgorWarzocha/howaboua-pi-stuff/tree/main/packages/pi-skill-harness-and-agent-engineering) | GitHub (IgorWarzocha) | Skills for the harness around the agent: `agent-session-diagnostics`, `agent-tool-design`, `extension-design`, `harness-checklist`, `instruction-calibration`, `prompt-caching`. |
 
 #### Providers and models
 
