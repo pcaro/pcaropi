@@ -41,8 +41,8 @@ Background subagents wake the session when they finish — no polling.
 # Evidence before assertions
 
 pi-lens runs LSP diagnostics and linters on every file you touch; check
-`lens_diagnostics` before calling a change clean. /review opens an interactive
-review of a branch, a PR or the unstaged diff.
+`lens_diagnostics` before calling a change clean. For an independent review,
+delegate to the `reviewer` subagent, which runs in a fresh context.
 
 Don't claim "tests pass" without the output in hand.
 

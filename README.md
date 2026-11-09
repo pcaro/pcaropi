@@ -109,7 +109,6 @@ Every extension in `extensions/` loads automatically. `uv-with-cwd.ts` is loaded
 
 | Extension                              | Command(s)  | What it does                                                                                                                   |
 | -------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| [**review**](extensions/review.ts)     | `/review`   | Interactive code review. Supports GitHub PRs, branches, commits, unstaged changes and custom instructions.                    |
 | [**todos**](extensions/todos.ts)       | `/todos`    | Markdown TODO manager with file backing. Create, claim, update and close tasks with locking and a TUI.                         |
 | [**watchdog**](extensions/watchdog.ts) | `/watchdog` | Session monitor. Uses Haiku as judge to detect whether the agent is stuck, looping or needs intervention.                     |
 
