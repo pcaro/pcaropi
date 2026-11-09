@@ -4,5 +4,6 @@
     "provider": "opencode-go-console",
     "id": "qwen3.8-flash",
     "reasoning": "low"
-  }
+  },
+  "fallbackModels": ["claude-bridge/claude-haiku-5-5"]
 }

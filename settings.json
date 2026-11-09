@@ -82,13 +82,13 @@
     "npm:@diegopetrucci/pi-librarian",
     "npm:pi-codex-goal",
     "npm:pi-context-prune",
-    "npm:@howaboua/pi-auto-trees",
+    "../../src/howaboua-pi-stuff/packages/pi-auto-trees",
     "git:github.com/DietrichGebert/ponytail",
     "npm:@nikiforovall/pi-scratchpad",
-    "npm:@fyeeme/pi-session-name",
+    "../../src/pi-packages/pi-session-name",
     "npm:pi-claude-bridge",
     "npm:pi-provider-opencode-console",
-    "npm:@howaboua/pi-suggestions"
+    "../../src/howaboua-pi-stuff/packages/pi-suggestions"
   ],
   "lastChangelogVersion": "1.5.0",
   "defaultProvider": "opencode-go-console",
@@ -249,10 +249,13 @@
     "{\"source\":\"npm:pi-inspect\",\"scope\":\"user\"}": "0.6.0",
     "{\"source\":\"npm:pi-codex-goal\",\"scope\":\"user\"}": "0.7.8",
     "{\"source\":\"npm:@howaboua/pi-auto-trees\",\"scope\":\"user\"}": "0.1.19",
-    "{\"source\":\"npm:@fyeeme/pi-session-name\",\"scope\":\"user\"}": "1.0.8",
-    "{\"source\":\"npm:pi-provider-opencode-console\",\"scope\":\"user\"}": "2.1.1",
+    "{\"source\":\"npm:@fyeeme/pi-session-name\",\"scope\":\"user\"}": "1.0.9",
+    "{\"source\":\"npm:pi-provider-opencode-console\",\"scope\":\"user\"}": "2.1.2",
     "{\"source\":\"npm:@aliou/pi-guardrails\",\"scope\":\"user\"}": "0.23.0",
     "{\"source\":\"npm:@aliou/pi-processes\",\"scope\":\"user\"}": "0.13.6",
-    "{\"source\":\"npm:@howaboua/pi-suggestions\",\"scope\":\"user\"}": "0.0.2"
+    "{\"source\":\"npm:@howaboua/pi-suggestions\",\"scope\":\"user\"}": "0.0.2",
+    "{\"source\":\"../../src/howaboua-pi-stuff/packages/pi-auto-trees\",\"scope\":\"user\"}": "0.1.19",
+    "{\"source\":\"../../src/howaboua-pi-stuff/packages/pi-suggestions\",\"scope\":\"user\"}": "0.0.2",
+    "{\"source\":\"../../src/pi-packages/pi-session-name\",\"scope\":\"user\"}": "1.0.9"
   }
 }
