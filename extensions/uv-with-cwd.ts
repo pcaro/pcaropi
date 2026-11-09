@@ -6,8 +6,8 @@
  * 2. Adds optional cwd parameter to bash for directory-specific commands
  */
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { createBashTool } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { createBashTool } from "@earendil-works/pi-coding-agent";
 import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
 import { Type } from "@sinclair/typebox";

@@ -5,7 +5,7 @@
  * Supports ISO 8601, Unix timestamp, date-only, and time-only formats.
  */
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "@sinclair/typebox";
 
 interface TimeDetails {

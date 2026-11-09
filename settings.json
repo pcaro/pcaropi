@@ -166,6 +166,24 @@
       "opencode-go-console/deepseek-v4.1-flash"
     ]
   },
+  "answer": {
+    "models": [
+      "opencode-go-console/deepseek-v4.1-flash",
+      "claude-bridge/claude-sonnet-5-5"
+    ]
+  },
+  "branch": {
+    "models": [
+      "claude-bridge/claude-sonnet-5-5",
+      "opencode-go-console/deepseek-v4.1-flash"
+    ]
+  },
+  "watchdog": {
+    "models": [
+      "opencode-go-console/deepseek-v4.1-flash",
+      "claude-bridge/claude-sonnet-5-5"
+    ]
+  },
   "hideThinkingBlock": true,
   "quietStartup": true,
   "pi-screenshots": {

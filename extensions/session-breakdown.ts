@@ -15,8 +15,8 @@
  * - Brightness: selected metric per day (log-scaled)
  */
 
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { BorderedLoader } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { BorderedLoader } from "@earendil-works/pi-coding-agent";
 import {
 	Key,
 	matchesKey,
@@ -25,7 +25,7 @@ import {
 	type TUI,
 	truncateToWidth,
 	visibleWidth,
-} from "@mariozechner/pi-tui";
+} from "@earendil-works/pi-tui";
 import os from "node:os";
 import path from "node:path";
 import fs from "node:fs/promises";
@@ -33,6 +33,21 @@ import { createReadStream, type Dirent } from "node:fs";
 import readline from "node:readline";
 
 type ModelKey = string; // `${provider}/${model}`
+
+/** Cap error text so a single failure cannot swallow the notification line. */
+const MAX_ERROR_CHARS = 120;
+
+/** One-line, stack-free, length-capped description of an error for UI display. */
+function describeError(err: unknown): string {
+	const raw = err instanceof Error ? err.message : String(err);
+	const firstLine = raw.split("\n")[0].trim();
+	if (firstLine.length === 0) {
+		return "analysis failed";
+	}
+	return firstLine.length > MAX_ERROR_CHARS
+		? `${firstLine.slice(0, MAX_ERROR_CHARS)}…`
+		: firstLine;
+}
 
 interface ParsedSession {
 	filePath: string;
@@ -1081,6 +1096,7 @@ export default function sessionBreakdownExtension(pi: ExtensionAPI) {
 			}
 
 			let aborted = false;
+			let failure: string | null = null;
 			const data = await ctx.ui.custom<BreakdownData | null>((tui, theme, _kb, done) => {
 				const baseMessage = "Analyzing sessions (last 90 days)…";
 				const loader = new BorderedLoader(tui, theme, baseMessage);
@@ -1132,7 +1148,7 @@ export default function sessionBreakdownExtension(pi: ExtensionAPI) {
 					})
 					.catch((err) => {
 						stopTicker();
-						console.error("session-breakdown: failed to analyze sessions", err);
+						failure = describeError(err);
 						if (!aborted) done(null);
 					});
 
@@ -1140,7 +1156,11 @@ export default function sessionBreakdownExtension(pi: ExtensionAPI) {
 			});
 
 			if (!data) {
-				ctx.ui.notify(aborted ? "Cancelled" : "Failed to analyze sessions", aborted ? "info" : "error");
+				if (aborted) {
+					ctx.ui.notify("Cancelled", "info");
+				} else {
+					ctx.ui.notify(`Failed to analyze sessions — ${failure ?? "unknown error"}`, "error");
+				}
 				return;
 			}
 
