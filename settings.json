@@ -49,13 +49,8 @@
     },
     {
       "source": "npm:pi-lens",
-      "extensions": [
-        "-index.ts"
-      ],
-      "skills": [
-        "-skills/ast-grep/SKILL.md",
-        "-skills/lsp-navigation/SKILL.md"
-      ]
+      "extensions": [],
+      "skills": []
     },
     "npm:pi-ask-user",
     "npm:pi-inspect",
