@@ -9,12 +9,6 @@
     },
     "npm:@aliou/pi-guardrails",
     {
-      "source": "npm:@tmustier/pi-code-actions",
-      "extensions": [
-        "-index.ts"
-      ]
-    },
-    {
       "source": "git:github.com/pasky/chrome-cdp-skill",
       "skills": [
         "-skills/chrome-cdp/SKILL.md"
@@ -22,12 +16,6 @@
     },
     "npm:@aliou/pi-processes",
     "npm:pi-prompt-template-model",
-    {
-      "source": "git:github.com/Whamp/pi-token-burden",
-      "extensions": [
-        "-src/index.ts"
-      ]
-    },
     "https://github.com/itisbryan/pi-add-dir",
     {
       "source": "npm:pi-subagents",
@@ -55,23 +43,11 @@
     "npm:pi-ask-user",
     "npm:pi-inspect",
     "npm:pi-slim",
-    {
-      "source": "https://github.com/monotykamary/pi-invisible-continue",
-      "extensions": [
-        "-continue.ts"
-      ]
-    },
     "npm:pi-intercom",
     {
       "source": "/home/pcaro/.pi/agent/extensions/structured-prompt",
       "extensions": [
         "+index.ts"
-      ]
-    },
-    {
-      "source": "npm:pi-cache-optimizer",
-      "extensions": [
-        "-index.ts"
       ]
     },
     "npm:@diegopetrucci/pi-librarian",
