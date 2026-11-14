@@ -57,7 +57,7 @@
     "../../src/howaboua-pi-stuff/packages/pi-suggestions",
     "npm:@howaboua/pi-skill-harness-and-agent-engineering",
     "npm:pi-better",
-    "git:github.com/pcaro/pi-guardrails-explain@v0.1.0"
+    "git:github.com/pcaro/pi-guardrails-explain@v0.2.0"
   ],
   "lastChangelogVersion": "1.5.2",
   "defaultProvider": "opencode-go-console",
@@ -224,6 +224,8 @@
     "{\"source\":\"npm:@howaboua/pi-suggestions\",\"scope\":\"user\"}": "0.0.2",
     "{\"source\":\"../../src/howaboua-pi-stuff/packages/pi-auto-trees\",\"scope\":\"user\"}": "0.1.19",
     "{\"source\":\"../../src/howaboua-pi-stuff/packages/pi-suggestions\",\"scope\":\"user\"}": "0.0.2",
-    "{\"source\":\"../../src/pi-packages/pi-session-name\",\"scope\":\"user\"}": "1.0.9"
+    "{\"source\":\"../../src/pi-packages/pi-session-name\",\"scope\":\"user\"}": "1.0.9",
+    "{\"source\":\"npm:pi-better\",\"scope\":\"user\"}": "0.2.0",
+    "{\"source\":\"git:github.com/pcaro/pi-guardrails-explain@v0.2.0\",\"scope\":\"user\"}": "0.1.0"
   }
 }
