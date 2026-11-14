@@ -56,7 +56,8 @@
     "npm:pi-provider-opencode-console",
     "../../src/howaboua-pi-stuff/packages/pi-suggestions",
     "npm:@howaboua/pi-skill-harness-and-agent-engineering",
-    "npm:pi-better"
+    "npm:pi-better",
+    "git:github.com/pcaro/pi-guardrails-explain@v0.1.0"
   ],
   "lastChangelogVersion": "1.5.2",
   "defaultProvider": "opencode-go-console",
